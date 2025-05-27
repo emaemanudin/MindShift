@@ -3,6 +3,9 @@ import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 // import { getFirestore, type Firestore } from "firebase/firestore"; // Optional: if you need Firestore
 
+// Log the API key to help with debugging
+console.log("Firebase API Key from env:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
