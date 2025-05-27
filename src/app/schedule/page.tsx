@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ScheduleItem, type ScheduleEventData } from "@/components/schedule/schedule-item";
+import { AddEventDialog } from "@/components/schedule/add-event-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -14,17 +15,19 @@ import {
   Users,
   ListChecks,
   ShieldCheck,
+  Presentation,
   SpellCheck,
   Atom,
   CalendarDays,
   Clock,
   PlusCircle,
   Bell,
-  CalendarIcon, // Default icon
+  CalendarIcon as DefaultCalendarIcon, // Default icon
 } from "lucide-react";
 import { format, addDays, isToday, isTomorrow, parseISO, isValid } from "date-fns";
 
-interface RawScheduleEvent {
+// This interface must be compatible with what AddEventDialog produces
+export interface RawScheduleEvent {
   id: string;
   date: string; // ISO date string e.g., "2024-07-28"
   time: string; // e.g., "09:00 AM"
@@ -40,7 +43,7 @@ interface RawScheduleEvent {
 const initialScheduleEvents: RawScheduleEvent[] = [
   { id: "1", date: format(new Date(), "yyyy-MM-dd"), time: "09:00 AM", title: "Morning Calculus Review", type: "study", topic: "Derivatives and Integrals", alarmSet: true, icon: BookOpen, iconColorClass: "text-blue-500", details: "Focus on chapters 3 & 4." },
   { id: "2", date: format(new Date(), "yyyy-MM-dd"), time: "11:00 AM", title: "Web Dev Group Project", type: "group-study", topic: "JavaScript Frontend Logic", alarmSet: true, icon: Users, iconColorClass: "text-purple-500", details: "Meet on Discord, work on auth flow." },
-  { id: "3", date: format(new Date(), "yyyy-MM-dd"), time: "02:00 PM", title: "Cybersecurity Lecture", type: "lecture", topic: "Network Protocols", alarmSet: false, icon: ShieldCheck, iconColorClass: "text-red-500", details: "Attend online via Zoom link." },
+  { id: "3", date: format(new Date(), "yyyy-MM-dd"), time: "02:00 PM", title: "Cybersecurity Lecture", type: "lecture", topic: "Network Protocols", alarmSet: false, icon: Presentation, iconColorClass: "text-red-500", details: "Attend online via Zoom link." },
   { id: "4", date: format(new Date(), "yyyy-MM-dd"), time: "04:00 PM", title: "Algorithms Homework", type: "task", topic: "Complete Exercise Set 2", alarmSet: true, icon: ListChecks, iconColorClass: "text-yellow-500", details: "Submit by midnight." },
   { id: "5", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "10:00 AM", title: "EUEE English Prep", type: "study", topic: "Essay Writing Practice", alarmSet: true, icon: SpellCheck, iconColorClass: "text-orange-500" },
   { id: "6", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "03:00 PM", title: "Cambridge Physics Lab", type: "study", topic: "Experiment 4 Report", alarmSet: false, icon: Atom, iconColorClass: "text-green-500" },
@@ -53,39 +56,48 @@ export default function SchedulePage() {
   const [events, setEvents] = useState<RawScheduleEvent[]>(initialScheduleEvents);
   const [activeTab, setActiveTab] = useState<"today" | "tomorrow" | "upcoming">("today");
 
-  // Effect for setting up in-app reminders
+  const handleAddEvent = (newEvent: RawScheduleEvent) => {
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+    toast({
+      title: "Event Added",
+      description: `${newEvent.title} has been added to your schedule.`,
+    });
+  };
+
   useEffect(() => {
     const now = new Date();
-    const activeEvents = events.filter(event => {
+    const activeEventsForReminders = events.filter(event => {
       const eventDate = parseISO(event.date);
       return (
-        (activeTab === "today" && isToday(eventDate)) ||
-        (activeTab === "tomorrow" && isTomorrow(eventDate))
-      ) && event.alarmSet;
+        isToday(eventDate) && // Only remind for today's events for simplicity in this effect
+        event.alarmSet
+      );
     });
 
     const timers: NodeJS.Timeout[] = [];
 
-    activeEvents.forEach(event => {
+    activeEventsForReminders.forEach(event => {
       const [timeStr, period] = event.time.split(" ");
       const [hoursStr, minutesStr] = timeStr.split(":");
       let hours = parseInt(hoursStr, 10);
       const minutes = parseInt(minutesStr, 10);
 
-      if (period === "PM" && hours < 12) hours += 12;
-      if (period === "AM" && hours === 12) hours = 0; // Midnight
+      if (period.toUpperCase() === "PM" && hours < 12) hours += 12;
+      if (period.toUpperCase() === "AM" && hours === 12) hours = 0; 
 
       const eventDateTime = parseISO(event.date);
       eventDateTime.setHours(hours, minutes, 0, 0);
       
       const timeToEvent = eventDateTime.getTime() - now.getTime();
-
-      if (timeToEvent > 0 && timeToEvent < 24 * 60 * 60 * 1000) { // Only schedule for near future
+      
+      // Remind 1 minute before, or if it's already past but within a reasonable window (e.g. 1 hour)
+      // For simplicity, we'll only schedule future reminders
+      if (timeToEvent > 0 && timeToEvent < 24 * 60 * 60 * 1000) { 
         const timerId = setTimeout(() => {
           toast({
             title: `Reminder: ${event.title}`,
             description: `${event.topic || ""} is scheduled for ${event.time}. ${event.details || ""}`,
-            duration: 10000, // 10 seconds
+            duration: 10000, 
           });
         }, timeToEvent);
         timers.push(timerId);
@@ -95,7 +107,7 @@ export default function SchedulePage() {
     return () => {
       timers.forEach(clearTimeout);
     };
-  }, [events, toast, activeTab]);
+  }, [events, toast]);
 
 
   const getFilteredEvents = (filterType: "today" | "tomorrow" | "upcoming"): ScheduleEventData[] => {
@@ -106,37 +118,36 @@ export default function SchedulePage() {
         if (!isValid(eventDate)) return false;
         if (filterType === "today") return isToday(eventDate);
         if (filterType === "tomorrow") return isTomorrow(eventDate);
-        if (filterType === "upcoming") return eventDate > addDays(today,1); // Everything after tomorrow
+        if (filterType === "upcoming") return eventDate > addDays(today,1); 
         return false;
       })
       .sort((a, b) => {
-        // Sort by date first, then by time
         const dateA = parseISO(a.date).getTime();
         const dateB = parseISO(b.date).getTime();
         if (dateA !== dateB) return dateA - dateB;
 
-        const timeToMinutes = (timeStr: string) => {
-            const [time, period] = timeStr.split(' ');
+        const timeToMinutes = (timeStrWithPeriod: string) => {
+            const [time, period] = timeStrWithPeriod.split(' ');
             let [hours, minutes] = time.split(':').map(Number);
-            if (period === 'PM' && hours < 12) hours += 12;
-            if (period === 'AM' && hours === 12) hours = 0; // Midnight case
+            if (period.toUpperCase() === 'PM' && hours < 12) hours += 12;
+            if (period.toUpperCase() === 'AM' && hours === 12) hours = 0; 
             return hours * 60 + minutes;
         };
         return timeToMinutes(a.time) - timeToMinutes(b.time);
       })
       .map(event => {
         const { icon: IconComponent, ...restOfEvent } = event;
-        const iconElement = IconComponent ? <IconComponent className={`h-6 w-6 ${event.iconColorClass || 'text-primary'}`} /> : <CalendarIcon className="h-6 w-6 text-muted-foreground" />;
+        const iconElement = IconComponent ? <IconComponent className={`h-6 w-6 ${event.iconColorClass || 'text-primary'}`} /> : <DefaultCalendarIcon className="h-6 w-6 text-muted-foreground" />;
         return { ...restOfEvent, iconElement };
       });
   };
 
-  const renderEventList = (eventList: ScheduleEventData[]) => {
+  const renderEventList = (eventList: ScheduleEventData[], listType: string) => {
     if (eventList.length === 0) {
       return (
         <div className="text-center py-10">
           <CalendarDays className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No events scheduled for this period.</p>
+          <p className="text-muted-foreground">No events scheduled for {listType}.</p>
         </div>
       );
     }
@@ -165,9 +176,11 @@ export default function SchedulePage() {
               Stay organized and manage your study times and tasks.
             </p>
           </div>
-          <Button>
-            <PlusCircle className="mr-2 h-5 w-5" /> Add Event
-          </Button>
+          <AddEventDialog onEventAdd={handleAddEvent}>
+            <Button>
+              <PlusCircle className="mr-2 h-5 w-5" /> Add Event
+            </Button>
+          </AddEventDialog>
         </div>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "today" | "tomorrow" | "upcoming")} className="w-full">
@@ -183,7 +196,7 @@ export default function SchedulePage() {
                 <CardDescription>{format(new Date(), "EEEE, MMMM do")}</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderEventList(todayEvents)}
+                {renderEventList(todayEvents, "today")}
               </CardContent>
             </Card>
           </TabsContent>
@@ -194,7 +207,7 @@ export default function SchedulePage() {
                 <CardDescription>{format(addDays(new Date(), 1), "EEEE, MMMM do")}</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderEventList(tomorrowEvents)}
+                {renderEventList(tomorrowEvents, "tomorrow")}
               </CardContent>
             </Card>
           </TabsContent>
@@ -205,13 +218,13 @@ export default function SchedulePage() {
                  <CardDescription>Events scheduled after tomorrow.</CardDescription>
               </CardHeader>
               <CardContent>
-                {renderEventList(upcomingEvents)}
+                {renderEventList(upcomingEvents, "the upcoming period")}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
          <p className="text-sm text-muted-foreground mt-4">
-            Note: In-app reminders will appear for events with alarms set if the application is open. Full offline notifications require PWA features.
+            Note: In-app reminders will appear for today&apos;s events with alarms set if the application is open. Full offline notifications and advanced reminder logic are future enhancements.
         </p>
       </div>
     </AppLayout>
