@@ -72,6 +72,8 @@ export default function SignUpPage() {
         errorMessage = "This email is already in use. Please try another.";
       } else if (error.code === "auth/weak-password") {
         errorMessage = "The password is too weak. Please choose a stronger password.";
+      } else if (error.code === "auth/api-key-not-valid") {
+        errorMessage = "Firebase API Key is not valid. Please check your .env.local file and Firebase project settings.";
       }
       console.error("Sign up error:", error);
       toast({

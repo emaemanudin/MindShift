@@ -63,6 +63,8 @@ export default function LoginPage() {
       let errorMessage = "An unexpected error occurred. Please try again.";
       if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
         errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.code === "auth/api-key-not-valid") {
+        errorMessage = "Firebase API Key is not valid. Please check your .env.local file and Firebase project settings.";
       }
       console.error("Login error:", error);
       toast({
