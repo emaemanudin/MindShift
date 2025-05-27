@@ -1,27 +1,27 @@
-import type { LucideIcon } from "lucide-react";
+
+import type { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  iconElement: ReactNode; // Changed from icon: LucideIcon
   iconBgClass?: string;
-  iconColorClass?: string;
+  // iconColorClass is removed as color is applied when creating the iconElement
 }
 
 export function StatsCard({
   title,
   value,
-  icon: Icon,
+  iconElement,
   iconBgClass = "bg-primary/10",
-  iconColorClass = "text-primary",
 }: StatsCardProps) {
   return (
     <Card className="shadow-md">
       <CardContent className="p-6 flex items-center">
         <div className={cn("p-3 rounded-full mr-4", iconBgClass)}>
-          <Icon className={cn("h-6 w-6", iconColorClass)} />
+          {iconElement} {/* Render the passed icon element */}
         </div>
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>

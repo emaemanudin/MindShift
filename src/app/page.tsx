@@ -1,3 +1,4 @@
+
 import { AppLayout } from "@/components/layout/app-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { PomodoroTimer } from "@/components/dashboard/pomodoro-timer";
@@ -8,6 +9,7 @@ import { StudyGroupItem, type StudyGroup } from "@/components/dashboard/study-gr
 import { ActivityItem, type Activity } from "@/components/dashboard/activity-item";
 import { ResourceFinderCard } from "@/components/dashboard/resource-finder-card";
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
+import { cn } from "@/lib/utils";
 
 import {
   BookOpenCheck,
@@ -48,9 +50,9 @@ const courses: Course[] = [
 ];
 
 const tasks: Task[] = [
-  { id: "1", title: "Web Dev Assignment", dueDate: "Due tomorrow", icon: AlertCircle, iconBgClass: "bg-red-500/10", iconColorClass: "text-red-500" },
-  { id: "2", title: "Database Quiz", dueDate: "Due in 3 days", icon: HelpCircle, iconBgClass: "bg-yellow-500/10", iconColorClass: "text-yellow-500" },
-  { id: "3", title: "Read ML Chapter 5", dueDate: "Due in 5 days", icon: BookOpen, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500" },
+  { id: "1", title: "Web Dev Assignment", dueDate: "Due tomorrow", icon: AlertCircle, iconBgClass: "bg-red-500/10", iconColorClass: "text-red-500", completed: false },
+  { id: "2", title: "Database Quiz", dueDate: "Due in 3 days", icon: HelpCircle, iconBgClass: "bg-yellow-500/10", iconColorClass: "text-yellow-500", completed: true },
+  { id: "3", title: "Read ML Chapter 5", dueDate: "Due in 5 days", icon: BookOpen, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", completed: false },
 ];
 
 const studyGroups: StudyGroup[] = [
@@ -80,16 +82,18 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => (
-            <StatsCard
-              key={stat.title}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              iconBgClass={stat.iconBg}
-              iconColorClass={stat.iconColor}
-            />
-          ))}
+          {stats.map((stat) => {
+            const IconComponent = stat.icon;
+            return (
+              <StatsCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                iconElement={<IconComponent className={cn("h-6 w-6", stat.iconColor)} />}
+                iconBgClass={stat.iconBg}
+              />
+            );
+          })}
         </div>
 
         {/* Study Timer and Progress Section */}
@@ -117,9 +121,18 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+            {courses.map((courseItem) => {
+              const { icon: IconComponent, iconBgColor, ...serializableCourseData } = courseItem;
+              const iconElement = IconComponent ? <IconComponent className="h-16 w-16 text-primary" /> : undefined;
+              return (
+                <CourseCard
+                  key={serializableCourseData.id}
+                  courseData={serializableCourseData}
+                  iconElement={iconElement}
+                  iconBgColor={iconBgColor}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -131,9 +144,18 @@ export default function DashboardPage() {
               <Button variant="link" size="sm" className="text-primary">View All</Button>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
-              {tasks.map((task) => (
-                <TaskItem key={task.id} task={task} />
-              ))}
+              {tasks.map((task) => {
+                const { icon: IconComponent, completed, iconBgClass, iconColorClass, ...restTaskProps } = task;
+                return (
+                  <TaskItem
+                    key={task.id}
+                    {...restTaskProps}
+                    iconElement={<IconComponent className={cn("h-5 w-5", iconColorClass)} />}
+                    iconBgClass={iconBgClass}
+                    completedProp={completed}
+                  />
+                );
+              })}
             </CardContent>
           </Card>
 
@@ -143,9 +165,17 @@ export default function DashboardPage() {
               <Button variant="link" size="sm" className="text-primary">View All</Button>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
-              {studyGroups.map((group) => (
-                <StudyGroupItem key={group.id} group={group} />
-              ))}
+              {studyGroups.map((group) => {
+                const { icon: IconComponent, iconBgClass, iconColorClass, ...restGroupProps } = group;
+                return (
+                  <StudyGroupItem
+                    key={group.id}
+                    groupData={restGroupProps}
+                    iconElement={<IconComponent className={cn("h-5 w-5", iconColorClass)} />}
+                    iconBgClass={iconBgClass}
+                  />
+                );
+              })}
             </CardContent>
           </Card>
         </div>
@@ -157,9 +187,21 @@ export default function DashboardPage() {
             <Button variant="link" size="sm" className="text-primary">View All</Button>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
-            {recentActivities.map((activity) => (
-              <ActivityItem key={activity.id} activity={activity} />
-            ))}
+            {recentActivities.map((activity) => {
+              const { icon: MainIconComponent, actionIcon: ActionIconComponent, iconBgClass, iconColorClass, actionIconColorClass, ...restActivityProps } = activity;
+              const mainIconElement = <MainIconComponent className={cn("h-5 w-5", iconColorClass)} />;
+              const actionIconElement = ActionIconComponent ? <ActionIconComponent className="h-5 w-5" /> : undefined;
+              return (
+                <ActivityItem
+                  key={activity.id}
+                  activityData={restActivityProps}
+                  mainIconElement={mainIconElement}
+                  actionIconElement={actionIconElement}
+                  iconBgClass={iconBgClass}
+                  actionIconContainerClass={cn("ml-2", actionIconColorClass || "text-muted-foreground")}
+                />
+              );
+            })}
           </CardContent>
         </Card>
 

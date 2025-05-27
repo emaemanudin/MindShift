@@ -1,4 +1,6 @@
-import type { LucideIcon } from "lucide-react";
+
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react"; // For StudyGroup data interface
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -12,35 +14,39 @@ interface Member {
   avatarAiHint?: string;
 }
 
+// Original StudyGroup interface for data structure
 export interface StudyGroup {
   id: string;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon: LucideIcon; // Icon component type in data
   iconBgClass: string;
   iconColorClass: string;
   members: Member[];
 }
 
+// Props for the StudyGroupItem component
 interface StudyGroupItemProps {
-  group: StudyGroup;
+  groupData: Omit<StudyGroup, 'icon' | 'iconBgClass' | 'iconColorClass'>; // Serializable data
+  iconElement: ReactNode; // Icon as a ReactNode
+  iconBgClass: string;
 }
 
-export function StudyGroupItem({ group }: StudyGroupItemProps) {
-  const Icon = group.icon;
+export function StudyGroupItem({ groupData, iconElement, iconBgClass }: StudyGroupItemProps) {
+  const { name, description, members } = groupData;
 
   return (
     <div className="flex items-center p-3 border rounded-lg hover:bg-accent/50 transition-colors">
-      <div className={cn("p-2 rounded-full mr-4", group.iconBgClass)}>
-        <Icon className={cn("h-5 w-5", group.iconColorClass)} />
+      <div className={cn("p-2 rounded-full mr-4", iconBgClass)}>
+        {iconElement} {/* Render the passed icon element */}
       </div>
       <div className="flex-grow">
-        <h4 className="font-medium text-foreground">{group.name}</h4>
-        <p className="text-xs text-muted-foreground">{group.description}</p>
+        <h4 className="font-medium text-foreground">{name}</h4>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       <div className="flex items-center space-x-2">
         <div className="flex -space-x-2">
-          {group.members.slice(0, 3).map((member) => (
+          {members.slice(0, 3).map((member) => (
             <UserAvatar 
               key={member.id} 
               src={member.avatarUrl} 
@@ -50,9 +56,9 @@ export function StudyGroupItem({ group }: StudyGroupItemProps) {
               aiHint={member.avatarAiHint}
             />
           ))}
-          {group.members.length > 3 && (
+          {members.length > 3 && (
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-muted-foreground text-xs border-2 border-background">
-              +{group.members.length - 3}
+              +{members.length - 3}
             </div>
           )}
         </div>
