@@ -1,9 +1,14 @@
 
+"use client";
+
 import type { ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect } from "react"; // Added useState, useEffect
+import { Card, CardContent } from "@/components/ui/card"; // Removed unused CardHeader, CardTitle, CardDescription
 import { Badge } from "@/components/ui/badge";
 import { Bell, BellRing, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+// No need to import parseISO here if we stick to new Date(date) for toLocaleDateString
+// as the key is to move the toLocaleDateString call into useEffect.
 
 export interface ScheduleEventData {
   id: string;
@@ -13,7 +18,7 @@ export interface ScheduleEventData {
   topic?: string;
   alarmSet: boolean;
   iconElement: ReactNode;
-  iconColorClass?: string; // This might be better applied directly to iconElement
+  iconColorClass?: string;
   details?: string;
   date?: string; // Optional, for upcoming items primarily
 }
@@ -28,6 +33,26 @@ export function ScheduleItem({
   details,
   date // For upcoming items
 }: ScheduleEventData) {
+  const [clientFormattedDate, setClientFormattedDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (date) {
+      // The `date` prop is a "yyyy-MM-dd" string.
+      // `new Date(date)` parses this as UTC midnight on that day.
+      // `toLocaleDateString` then formats this UTC Date object using the
+      // client's specific locale and timezone settings.
+      // This calculation is deferred to the client-side after hydration.
+      setClientFormattedDate(
+        new Date(date).toLocaleDateString(undefined, { // undefined uses client's default locale
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        })
+      );
+    } else {
+      setClientFormattedDate(null);
+    }
+  }, [date]); // Rerun if the date prop changes
   
   const typeDisplayNames: Record<ScheduleEventData["type"], string> = {
     study: "Study Session",
@@ -60,7 +85,10 @@ export function ScheduleItem({
           <div className="flex items-center text-sm text-muted-foreground mb-2">
             <Clock className="h-4 w-4 mr-1.5" />
             <span>{time}</span>
-            {date && <span className="ml-2 text-xs">(On {new Date(date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })})</span>}
+            {/* Render the client-side formatted date only when available */}
+            {date && clientFormattedDate && (
+              <span className="ml-2 text-xs">(On {clientFormattedDate})</span>
+            )}
           </div>
           {details && <p className="text-xs text-muted-foreground">{details}</p>}
         </div>
