@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   GraduationCap,
   Home,
@@ -14,7 +14,6 @@ import {
   Video,
   Settings,
   LogOut,
-  Briefcase,
   SearchCode,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
@@ -27,10 +26,11 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
   SidebarGroup,
-  SidebarGroupLabel
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { signOutUser } from "@/lib/firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -50,6 +50,26 @@ const bottomNavItems = [
 
 export function AppSidebarContent() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Failed",
+        description: "Could not log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -112,12 +132,14 @@ export function AppSidebarContent() {
             </SidebarMenuItem>
           ))}
            <SidebarMenuItem>
-             <Link href="/login" className="w-full">
-              <Button variant="ghost" className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                onClick={handleLogout}
+              >
                 <LogOut className="h-5 w-5 mr-2" />
                 <span>Logout</span>
               </Button>
-             </Link>
            </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>

@@ -1,6 +1,11 @@
 
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,10 +17,56 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, KeyRound, Mail } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { signInUserWithEmailAndPassword } from "@/lib/firebase/auth";
+import { GraduationCap, KeyRound, Mail, Loader2 } from "lucide-react";
 import Link from "next/link";
 
+const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z.string().min(1, { message: "Password cannot be empty." }),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 export default function LoginPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsLoading(true);
+    try {
+      await signInUserWithEmailAndPassword(data.email, data.password);
+      toast({
+        title: "Login Successful!",
+        description: "Welcome back to StudyGuru.",
+      });
+      router.push("/"); // Redirect to dashboard
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password. Please try again.";
+      }
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="absolute top-8 left-8 flex items-center gap-2 text-lg font-semibold text-primary">
@@ -33,44 +84,58 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                className="pl-10"
-              />
+          <form onSubmit={form.handleSubmit(onSubmit)} id="loginForm" className="space-y-6">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  className="pl-10"
+                  {...form.register("email")}
+                />
+              </div>
+              {form.formState.errors.email && (
+                <p className="text-sm text-destructive mt-1">{form.formState.errors.email.message}</p>
+              )}
             </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="#"
-                className="text-sm text-primary hover:underline"
-                prefetch={false}
-              >
-                Forgot Password?
-              </Link>
+            <div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="#" // Keep as # for now, or implement password reset later
+                  className="text-sm text-primary hover:underline"
+                  prefetch={false}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  className="pl-10" 
+                  placeholder="••••••••" 
+                  {...form.register("password")}
+                />
+              </div>
+              {form.formState.errors.password && (
+                <p className="text-sm text-destructive mt-1">{form.formState.errors.password.message}</p>
+              )}
             </div>
-            <div className="relative">
-               <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input id="password" type="password" required className="pl-10" placeholder="••••••••" />
-            </div>
-          </div>
+          </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full text-lg py-6">
-            Login
+          <Button type="submit" form="loginForm" className="w-full text-lg py-6" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Login"}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
-              href="#"
+              href="/signup"
               className="font-medium text-primary hover:underline"
               prefetch={false}
             >
