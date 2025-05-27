@@ -1,4 +1,6 @@
 
+"use client"; // Required because we use useAuth hook
+
 import { AppLayout } from "@/components/layout/app-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { PomodoroTimer } from "@/components/dashboard/pomodoro-timer";
@@ -10,6 +12,7 @@ import { ActivityItem, type Activity } from "@/components/dashboard/activity-ite
 import { ResourceFinderCard } from "@/components/dashboard/resource-finder-card";
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider"; // Added import
 
 import {
   BookOpenCheck,
@@ -30,7 +33,8 @@ import {
   ArrowRight,
   Filter,
   Plus,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +73,20 @@ const recentActivities: Activity[] = [
 
 
 export default function DashboardPage() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+     return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+  
+  const userName = user?.displayName?.split(' ')[0] || 'User'; // Get first name or default to 'User'
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -76,7 +94,9 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
-            <p className="text-muted-foreground">Welcome back, Sarah! You have 3 tasks due soon.</p>
+            <p className="text-muted-foreground">
+              Welcome back, {userName}! You have 3 tasks due soon.
+            </p>
           </div>
         </div>
 

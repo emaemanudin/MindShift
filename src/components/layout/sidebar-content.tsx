@@ -15,6 +15,7 @@ import {
   Settings,
   LogOut,
   SearchCode,
+  Loader2,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
@@ -31,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { signOutUser } from "@/lib/firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/auth-provider";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -52,6 +54,7 @@ export function AppSidebarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const { user, isLoading } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -80,13 +83,36 @@ export function AppSidebarContent() {
         </Link>
       </SidebarHeader>
       <SidebarGroup className="p-4 border-b">
-         <div className="flex items-center">
-            <UserAvatar src="https://placehold.co/40x40.png" alt="Sarah Johnson" fallbackInitials="SJ" aiHint="profile woman" />
-            <div className="ml-3">
-                <p className="font-semibold text-sm">Sarah Johnson</p>
-                <p className="text-xs text-muted-foreground">Computer Science</p>
+        {isLoading ? (
+          <div className="flex items-center">
+            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+            <div className="ml-3 space-y-1">
+                <div className="h-4 w-24 bg-muted rounded"></div>
+                <div className="h-3 w-32 bg-muted rounded"></div>
             </div>
-        </div>
+          </div>
+        ) : user ? (
+          <div className="flex items-center">
+            <UserAvatar 
+              src={user.photoURL} 
+              alt={user.displayName || "User Avatar"} 
+              fallbackInitials={user.displayName ? user.displayName.substring(0, 2).toUpperCase() : "U"} 
+              aiHint="profile person"
+            />
+            <div className="ml-3 truncate">
+                <p className="font-semibold text-sm truncate">{user.displayName || "User"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center">
+             <UserAvatar fallbackInitials="GU" /> {/* Guest User */}
+             <div className="ml-3">
+                <p className="font-semibold text-sm">Guest</p>
+                <p className="text-xs text-muted-foreground">Not logged in</p>
+            </div>
+          </div>
+        )}
       </SidebarGroup>
 
       <SidebarMainContent className="flex-grow">
@@ -98,6 +124,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
+                disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")} // Disable if not logged in and not auth page
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -123,6 +150,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href}
                 className="justify-start"
                 tooltip={item.label}
+                disabled={isLoading || !user}
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -131,16 +159,19 @@ export function AppSidebarContent() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-           <SidebarMenuItem>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-5 w-5 mr-2" />
-                <span>Logout</span>
-              </Button>
-           </SidebarMenuItem>
+           {user && (
+            <SidebarMenuItem>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                >
+                  <LogOut className="h-5 w-5 mr-2" />
+                  <span>Logout</span>
+                </Button>
+            </SidebarMenuItem>
+           )}
          </SidebarMenu>
       </SidebarFooter>
     </>

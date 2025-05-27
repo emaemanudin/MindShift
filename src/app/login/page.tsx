@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signInUserWithEmailAndPassword } from "@/lib/firebase/auth";
+import { useAuth } from "@/components/auth/auth-provider"; // Added import
 import { GraduationCap, KeyRound, Mail, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -32,7 +33,14 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Renamed from isLoading for clarity
+  const { user, isLoading: isAuthLoading } = useAuth(); // Consume auth context
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.push("/"); // Redirect if already logged in
+    }
+  }, [user, isAuthLoading, router]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -43,14 +51,14 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       await signInUserWithEmailAndPassword(data.email, data.password);
       toast({
         title: "Login Successful!",
         description: "Welcome back to StudyGuru.",
       });
-      router.push("/"); // Redirect to dashboard
+      // router.push("/") is handled by AuthProvider/AppLayout now
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred. Please try again.";
       if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
@@ -63,9 +71,18 @@ export default function LoginPage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isAuthLoading || (!isAuthLoading && user)) {
+    // Show loading or prevent rendering if already logged in and redirecting
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -129,8 +146,8 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" form="loginForm" className="w-full text-lg py-6" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Login"}
+          <Button type="submit" form="loginForm" className="w-full text-lg py-6" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Login"}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}

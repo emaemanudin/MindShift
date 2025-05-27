@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signUpWithEmailAndPassword } from "@/lib/firebase/auth";
+import { useAuth } from "@/components/auth/auth-provider"; // Added import
 import { GraduationCap, KeyRound, Mail, User as UserIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -29,7 +30,7 @@ const signUpSchema = z.object({
   confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters." }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match.",
-  path: ["confirmPassword"], // Path to the field that will display the error
+  path: ["confirmPassword"], 
 });
 
 type SignUpFormValues = z.infer<typeof signUpSchema>;
@@ -37,7 +38,14 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Renamed for clarity
+  const { user, isLoading: isAuthLoading } = useAuth(); // Consume auth context
+
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.push("/"); // Redirect if already logged in
+    }
+  }, [user, isAuthLoading, router]);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -50,14 +58,14 @@ export default function SignUpPage() {
   });
 
   const onSubmit = async (data: SignUpFormValues) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       await signUpWithEmailAndPassword(data.email, data.password, data.fullName);
       toast({
         title: "Account Created!",
         description: "You have successfully signed up.",
       });
-      router.push("/"); // Redirect to dashboard
+      // router.push("/") is handled by AuthProvider/AppLayout now
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred. Please try again.";
       if (error.code === "auth/email-already-in-use") {
@@ -72,9 +80,18 @@ export default function SignUpPage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isAuthLoading || (!isAuthLoading && user)) {
+    // Show loading or prevent rendering if already logged in and redirecting
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -161,8 +178,8 @@ export default function SignUpPage() {
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" form="signupForm" className="w-full text-lg py-6" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Create Account"}
+          <Button type="submit" form="signupForm" className="w-full text-lg py-6" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Create Account"}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
