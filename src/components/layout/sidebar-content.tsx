@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -74,7 +75,7 @@ export function AppSidebarContent() {
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
               >
@@ -111,10 +112,12 @@ export function AppSidebarContent() {
             </SidebarMenuItem>
           ))}
            <SidebarMenuItem>
+             <Link href="/login" className="w-full">
               <Button variant="ghost" className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                 <LogOut className="h-5 w-5 mr-2" />
                 <span>Logout</span>
               </Button>
+             </Link>
            </SidebarMenuItem>
          </SidebarMenu>
       </SidebarFooter>
