@@ -26,7 +26,8 @@ if (!getApps().length) {
     console.error(
       "CRITICAL Firebase Config Error: Missing essential values (apiKey, authDomain, or projectId). " +
       "Please check your .env.local file and ensure all NEXT_PUBLIC_FIREBASE_ variables are set correctly " +
-      "and that you have restarted your development server."
+      "and that you have restarted your development server. " +
+      "The application will attempt to initialize Firebase, but IT WILL LIKELY FAIL to connect or authenticate properly without these values."
     );
     // Depending on the app's needs, you might throw an error here
     // or prevent further execution that relies on Firebase.
@@ -41,3 +42,4 @@ const auth: Auth = getAuth(app);
 // const db: Firestore = getFirestore(app); // Optional: if you need Firestore
 
 export { app, auth /*, db */ };
+
