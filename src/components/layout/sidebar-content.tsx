@@ -40,7 +40,7 @@ const navItems = [
   { href: "/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/assignments", label: "Assignments", icon: ListChecks, badge: "3" },
   { href: "/progress", label: "Progress", icon: LineChart },
-  { href: "/study-groups", label: "Study Groups", icon: Users, badge: "2", badgeVariant: "default" as "default" | "secondary" | "destructive" | "outline" | null | undefined },
+  { href: "/study-groups", label: "Study Groups", icon: Users, badge: "New" , badgeVariant: "default" as "default" | "secondary" | "destructive" | "outline" | null | undefined },
   { href: "/virtual-classroom", label: "Virtual Classroom", icon: Video },
   { href: "/resource-finder", label: "AI Resources", icon: SearchCode},
 ];
