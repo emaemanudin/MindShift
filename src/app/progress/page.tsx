@@ -297,5 +297,5 @@ export default function ProgressPage() {
 
       </div>
     </AppLayout>
-
-    
+  );
+}
