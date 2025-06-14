@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation"; // Removed useRouter
 import {
   GraduationCap,
   Home,
@@ -13,11 +13,11 @@ import {
   Users,
   Video,
   Settings,
-  LogOut,
+  // LogOut, // Removed LogOut
   SearchCode,
-  Loader2,
+  // Loader2, // Removed Loader2
 } from "lucide-react";
-import { UserAvatar } from "@/components/shared/user-avatar";
+// import { UserAvatar } from "@/components/shared/user-avatar"; // Removed UserAvatar
 import {
   SidebarHeader,
   SidebarContent as SidebarMainContent,
@@ -29,10 +29,10 @@ import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { signOutUser } from "@/lib/firebase/auth";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/auth-provider";
+// import { Button } from "@/components/ui/button"; // Removed Button
+// import { signOutUser } from "@/lib/firebase/auth"; // Removed signOutUser
+// import { useToast } from "@/hooks/use-toast"; // Removed useToast
+// import { useAuth } from "@/components/auth/auth-provider"; // Removed useAuth
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -52,27 +52,27 @@ const bottomNavItems = [
 
 export function AppSidebarContent() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
-  const { user, isLoading } = useAuth();
+  // const router = useRouter();
+  // const { toast } = useToast();
+  // const { user, isLoading } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await signOutUser();
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
-      });
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Logout Failed",
-        description: "Could not log out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await signOutUser();
+  //     toast({
+  //       title: "Logged Out",
+  //       description: "You have been successfully logged out.",
+  //     });
+  //     router.push("/login");
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //     toast({
+  //       title: "Logout Failed",
+  //       description: "Could not log out. Please try again.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   return (
     <>
@@ -83,36 +83,14 @@ export function AppSidebarContent() {
         </Link>
       </SidebarHeader>
       <SidebarGroup className="p-4 border-b">
-        {isLoading ? (
-          <div className="flex items-center">
-            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            <div className="ml-3 space-y-1">
-                <div className="h-4 w-24 bg-muted rounded"></div>
-                <div className="h-3 w-32 bg-muted rounded"></div>
-            </div>
-          </div>
-        ) : user ? (
-          <div className="flex items-center">
-            <UserAvatar 
-              src={user.photoURL} 
-              alt={user.displayName || "User Avatar"} 
-              fallbackInitials={user.displayName ? user.displayName.substring(0, 2).toUpperCase() : "U"} 
-              aiHint="profile person"
-            />
-            <div className="ml-3 truncate">
-                <p className="font-semibold text-sm truncate">{user.displayName || "User"}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center">
-             <UserAvatar fallbackInitials="GU" /> {/* Guest User */}
+        {/* Removed user info display */}
+         <div className="flex items-center">
+             {/* <UserAvatar fallbackInitials="SG" /> Guest User / Placeholder */}
              <div className="ml-3">
-                <p className="font-semibold text-sm">Guest</p>
-                <p className="text-xs text-muted-foreground">Not logged in</p>
+                <p className="font-semibold text-sm">StudyGuru App</p>
+                <p className="text-xs text-muted-foreground">Explore features</p>
             </div>
           </div>
-        )}
       </SidebarGroup>
 
       <SidebarMainContent className="flex-grow">
@@ -124,7 +102,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
-                disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")} // Disable if not logged in and not auth page
+                // disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")} // Removed disabled logic
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -150,7 +128,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href}
                 className="justify-start"
                 tooltip={item.label}
-                disabled={isLoading || !user}
+                // disabled={isLoading || !user} // Removed disabled logic
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -159,19 +137,7 @@ export function AppSidebarContent() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-           {user && (
-            <SidebarMenuItem>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start h-8 text-sm font-normal hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  onClick={handleLogout}
-                  disabled={isLoading}
-                >
-                  <LogOut className="h-5 w-5 mr-2" />
-                  <span>Logout</span>
-                </Button>
-            </SidebarMenuItem>
-           )}
+           {/* Removed Logout Button */}
          </SidebarMenu>
       </SidebarFooter>
     </>

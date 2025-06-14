@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signInUserWithEmailAndPassword } from "@/lib/firebase/auth";
-import { useAuth } from "@/components/auth/auth-provider";
+/*import { useAuth } from "@/components/auth/auth-provider";*/ // Commented out useAuth
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,13 +34,13 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isLoading: isAuthLoading } = useAuth();
+ /**  const { user, isLoading: isAuthLoading } = useAuth();*/ // Commented out useAuth related state
 
-  useEffect(() => {
-    if (!isAuthLoading && user) {
-      router.push("/");
-    }
-  }, [user, isAuthLoading, router]);
+  // useEffect(() => { // Commented out redirect logic
+  //   if (!isAuthLoading && user) {
+  //     router.push("/");
+  //   }
+  // }, [user, isAuthLoading, router]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -56,9 +56,9 @@ export default function LoginPage() {
       await signInUserWithEmailAndPassword(data.email, data.password);
       toast({
         title: "Login Successful!",
-        description: "Welcome back to StudyGuru.",
+        description: "Welcome back to StudyGuru. Redirecting...",
       });
-      // router.push("/") is handled by AuthProvider/AppLayout now
+      router.push("/"); // Redirect to dashboard on successful login
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred. Please try again.";
       if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
@@ -77,17 +77,17 @@ export default function LoginPage() {
     }
   };
 
-  if (isAuthLoading || (!isAuthLoading && user)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // if (isAuthLoading || (!isAuthLoading && user)) { // Commented out loading state
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-background">
+  //       <Loader2 className="h-12 w-12 animate-spin text-primary" />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm shadow-xl"> {/* Simplified max-w for a more compact look */}
+      <Card className="w-full max-w-sm shadow-xl">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-3xl font-bold">Welcome Back!</CardTitle>
           <CardDescription>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <Link
-                  href="#" // Keep as # for now, or implement password reset later
+                  href="#"
                   className="text-sm text-primary hover:underline"
                   prefetch={false}
                 >

@@ -1,5 +1,5 @@
 
-"use client"; // Required because we use useAuth hook
+"use client"; // Required because we use hooks (even if auth is removed, others might be used)
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -12,7 +12,7 @@ import { ActivityItem, type Activity } from "@/components/dashboard/activity-ite
 import { ResourceFinderCard } from "@/components/dashboard/resource-finder-card";
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/components/auth/auth-provider"; // Added import
+// import { useAuth } from "@/components/auth/auth-provider"; // Removed import
 
 import {
   BookOpenCheck,
@@ -34,7 +34,7 @@ import {
   Filter,
   Plus,
   Star,
-  Loader2
+  // Loader2 // Removed Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,19 +73,19 @@ const recentActivities: Activity[] = [
 
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  // const { user, isLoading } = useAuth();
 
-  if (isLoading) {
-     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-full">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-      </AppLayout>
-    );
-  }
+  // if (isLoading) {
+  //    return (
+  //     <AppLayout>
+  //       <div className="flex items-center justify-center h-full">
+  //         <Loader2 className="h-12 w-12 animate-spin text-primary" />
+  //       </div>
+  //     </AppLayout>
+  //   );
+  // }
   
-  const userName = user?.displayName?.split(' ')[0] || 'User'; // Get first name or default to 'User'
+  const userName = 'User'; // Generic username
 
   return (
     <AppLayout>
@@ -95,7 +95,7 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
             <p className="text-muted-foreground">
-              Welcome back, {userName}! You have 3 tasks due soon.
+              Welcome back, {userName}! Explore your study materials. {/* Generic welcome */}
             </p>
           </div>
         </div>
