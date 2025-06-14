@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from 'react';
 import type { ReactNode } from "react";
 import { useState, useEffect, useRef, useCallback }
 from "react";
@@ -332,7 +333,7 @@ export default function StudyGroupsPage() {
                             {group.members.length > 3 && <span className="text-xs text-muted-foreground ml-1.5 pl-1 pt-0.5">+{group.members.length-3}</span>}
                         </div>
                         {!isMember && (
-                            <Button size="xs" variant="outline" onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }}>Join</Button>
+                            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }} className="h-auto px-2 py-1 text-xs">Join</Button>
                         )}
                      </div>
                   </div>
@@ -449,4 +450,5 @@ declare module "@/components/ui/button" {
 // Corrected the join button styling for a smaller appearance as 'xs' isn't standard.
 // <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }} className="h-auto px-2 py-1 text-xs">Join</Button>
 // This is now in the code.
+
 
