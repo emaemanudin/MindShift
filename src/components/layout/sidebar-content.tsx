@@ -16,6 +16,7 @@ import {
   LogOut,
   SearchCode,
   Loader2,
+  Phone,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
@@ -42,6 +43,7 @@ const navItems = [
   { href: "/progress", label: "Progress", icon: LineChart },
   { href: "/study-groups", label: "Study Groups", icon: Users, badge: "New" , badgeVariant: "default" as "default" | "secondary" | "destructive" | "outline" | null | undefined },
   { href: "/virtual-classroom", label: "Virtual Classroom", icon: Video },
+  { href: "/p2p-chat", label: "P2P Chat Demo", icon: Phone },
   { href: "/resource-finder", label: "AI Resources", icon: SearchCode},
 ];
 
