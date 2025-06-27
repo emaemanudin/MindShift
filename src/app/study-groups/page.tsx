@@ -2,9 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import type { ReactNode } from "react";
-import { useState, useEffect, useRef, useCallback }
-from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
@@ -16,8 +14,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { LucideIcon } from "lucide-react";
-import { Users, MessageSquare, SendHorizonal, PlusCircle, Briefcase, FlaskConical, Code2, UserCircle2, CheckCircle, Info } from "lucide-react";
+import { Users, MessageSquare, SendHorizonal, PlusCircle, Briefcase, FlaskConical, Code2, UserCircle2, CheckCircle, Info, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { studyGroupAssistant } from '@/ai/flows/study-group-assistant';
 
 // Data types
 interface DemoUser {
@@ -51,6 +50,7 @@ interface StudyGroup {
 
 // Mock Users
 const currentUser: DemoUser = { id: "user_current", name: "You (Alex)", avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg", avatarAiHint: "profile man" };
+const aiAssistantUser: DemoUser = { id: "user_ai", name: "AI Assistant", avatarUrl: "/ai-avatar.png", avatarAiHint: "robot assistant" };
 const demoUser1: DemoUser = { id: "user_1", name: "Sarah Day", avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg", avatarAiHint: "profile woman" };
 const demoUser2: DemoUser = { id: "user_2", name: "John Smith", avatarUrl: "https://randomuser.me/api/portraits/men/46.jpg", avatarAiHint: "profile man" };
 const demoUser3: DemoUser = { id: "user_3", name: "Maria Garcia", avatarUrl: "https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman" };
@@ -63,13 +63,13 @@ const initialStudyGroups: StudyGroup[] = [
     name: "Web Development Wizards",
     description: "Discussing React, Next.js, and modern web tech.",
     teacher: demoTeacher,
-    members: [currentUser, demoUser1, demoUser2],
+    members: [currentUser, demoUser1, demoUser2, aiAssistantUser],
     icon: Code2,
     iconColorClass: "text-blue-500",
     messages: [
       { id: "msg_1_1", userId: demoUser1.id, userName: demoUser1.name, userAvatarUrl: demoUser1.avatarUrl, userAvatarAiHint: demoUser1.avatarAiHint, text: "Hey everyone! Excited to dive into Next.js 15 features.", timestamp: new Date(Date.now() - 1000 * 60 * 50) },
       { id: "msg_1_2", userId: demoTeacher.id, userName: demoTeacher.name, userAvatarUrl: demoTeacher.avatarUrl, userAvatarAiHint: demoTeacher.avatarAiHint, text: "Welcome Sarah! Let's start with Server Components. Any questions?", timestamp: new Date(Date.now() - 1000 * 60 * 48) },
-      { id: "msg_1_3", userId: currentUser.id, userName: currentUser.name, userAvatarUrl: currentUser.avatarUrl, userAvatarAiHint: currentUser.avatarAiHint, text: "I'm curious about the new Turbopack improvements.", timestamp: new Date(Date.now() - 1000 * 60 * 45), isOwnMessage: true },
+      { id: "msg_1_3", userId: currentUser.id, userName: currentUser.name, userAvatarUrl: currentUser.avatarUrl, userAvatarAiHint: currentUser.avatarAiHint, text: "I'm curious about the new Turbopack improvements. AI, can you summarize?", timestamp: new Date(Date.now() - 1000 * 60 * 45), isOwnMessage: true },
     ],
   },
   {
@@ -77,7 +77,7 @@ const initialStudyGroups: StudyGroup[] = [
     name: "Chemistry Crew",
     description: "Organic chemistry, lab experiments, and study sessions.",
     teacher: demoTeacher,
-    members: [currentUser, demoUser2, demoUser3],
+    members: [currentUser, demoUser2, demoUser3, aiAssistantUser],
     icon: FlaskConical,
     iconColorClass: "text-green-500",
     messages: [
@@ -90,7 +90,7 @@ const initialStudyGroups: StudyGroup[] = [
     name: "Project Management Pros",
     description: "Agile, Scrum, and project planning techniques.",
     teacher: demoTeacher,
-    members: [currentUser, demoUser1, demoUser3],
+    members: [currentUser, demoUser1, demoUser3, aiAssistantUser],
     icon: Briefcase,
     iconColorClass: "text-purple-500",
     messages: [
@@ -105,14 +105,26 @@ interface ChatMessageItemProps {
 }
 function ChatMessageItem({ message }: ChatMessageItemProps) {
   const { userName, userAvatarUrl, userAvatarAiHint, text, timestamp, isOwnMessage } = message;
+  const isAI = message.userId === aiAssistantUser.id;
+
   return (
     <div className={cn("flex items-start gap-3 p-3 rounded-lg", isOwnMessage ? "flex-row-reverse" : "flex-row")}>
       <Avatar className="h-8 w-8 border">
-        <Image src={userAvatarUrl} alt={userName} width={32} height={32} data-ai-hint={userAvatarAiHint || 'profile generic'} />
-        <AvatarFallback>{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+        {isAI ? (
+            <div className="flex items-center justify-center h-full w-full bg-primary/20 rounded-full">
+                <Bot className="h-5 w-5 text-primary" />
+            </div>
+        ) : (
+          <>
+            <Image src={userAvatarUrl} alt={userName} width={32} height={32} data-ai-hint={userAvatarAiHint || 'profile generic'} />
+            <AvatarFallback>{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+          </>
+        )}
       </Avatar>
       <div className={cn("flex flex-col max-w-[70%]", isOwnMessage ? "items-end" : "items-start")}>
-        <div className={cn("p-3 rounded-xl", isOwnMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
+        <div className={cn("p-3 rounded-xl", 
+            isOwnMessage ? "bg-primary text-primary-foreground" : 
+            isAI ? "bg-accent border" : "bg-muted")}>
           <p className="text-sm font-medium mb-0.5">{!isOwnMessage && userName}</p>
           <p className="text-sm whitespace-pre-wrap">{text}</p>
         </div>
@@ -125,7 +137,7 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
 // Component for Create Group Dialog
 interface CreateGroupDialogProps {
   onGroupCreate: (name: string, description: string) => void;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 function CreateGroupDialog({ onGroupCreate, children }: CreateGroupDialogProps) {
@@ -153,7 +165,7 @@ function CreateGroupDialog({ onGroupCreate, children }: CreateGroupDialogProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center"><PlusCircle className="mr-2 h-5 w-5" /> Create New Study Group</DialogTitle>
           <DialogDescription>
-            Fill in the details to start a new study group. You will be the admin.
+            Fill in the details to start a new study group. The AI assistant will adapt to your group's topic.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -178,6 +190,7 @@ export default function StudyGroupsPage() {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
+  const [isAiTyping, setIsAiTyping] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -185,41 +198,78 @@ export default function StudyGroupsPage() {
 
   useEffect(scrollToBottom, [selectedGroup?.messages]);
   
-  useEffect(() => {
-    if (!selectedGroup) return;
+  const handleAiResponse = async (userMessage: string, group: StudyGroup) => {
+    setIsAiTyping(true);
+    const thinkingMessage: ChatMessage = {
+      id: `msg_thinking_${group.id}`,
+      userId: aiAssistantUser.id,
+      userName: aiAssistantUser.name,
+      userAvatarUrl: aiAssistantUser.avatarUrl,
+      text: "MindShift AI is typing...",
+      timestamp: new Date(),
+      isOwnMessage: false,
+    };
 
-    // Simulate other users sending messages
-    const intervalId = setInterval(() => {
-      setStudyGroups(prevGroups => 
-        prevGroups.map(group => {
-          if (group.id === selectedGroup.id) {
-            const otherUsers = group.members.filter(member => member.id !== currentUser.id && member.id !== group.teacher.id);
-            if (otherUsers.length > 0) {
-              const randomUser = otherUsers[Math.floor(Math.random() * otherUsers.length)];
-              const mockMessages = ["Great point!", "I agree.", "Can someone explain that again?", "Let's schedule a call.", "Interesting idea."];
-              const randomMessageText = mockMessages[Math.floor(Math.random() * mockMessages.length)];
-              
-              const newRandomMessage: ChatMessage = {
-                id: `msg_${group.id}_${Date.now()}`,
-                userId: randomUser.id,
-                userName: randomUser.name,
-                userAvatarUrl: randomUser.avatarUrl,
-                userAvatarAiHint: randomUser.avatarAiHint,
-                text: randomMessageText,
-                timestamp: new Date(),
-                isOwnMessage: false,
-              };
-              return { ...group, messages: [...group.messages, newRandomMessage] };
-            }
+    // Add typing indicator
+    setStudyGroups(prevGroups =>
+      prevGroups.map(g =>
+        g.id === group.id ? { ...g, messages: [...g.messages, thinkingMessage] } : g
+      )
+    );
+
+    try {
+      const result = await studyGroupAssistant({
+        userMessage: userMessage,
+        groupName: group.name,
+        groupDescription: group.description,
+      });
+
+      const aiResponseMessage: ChatMessage = {
+        id: `msg_ai_${group.id}_${Date.now()}`,
+        userId: aiAssistantUser.id,
+        userName: aiAssistantUser.name,
+        userAvatarUrl: aiAssistantUser.avatarUrl,
+        userAvatarAiHint: aiAssistantUser.avatarAiHint,
+        text: result.response,
+        timestamp: new Date(),
+        isOwnMessage: false,
+      };
+      
+      // Replace typing indicator with actual response
+      setStudyGroups(prevGroups =>
+        prevGroups.map(g => {
+          if (g.id === group.id) {
+            const updatedMessages = g.messages.filter(m => m.id !== thinkingMessage.id);
+            return { ...g, messages: [...updatedMessages, aiResponseMessage] };
           }
-          return group;
+          return g;
         })
       );
-    }, 25000); // Add a new message every 25 seconds
 
-    return () => clearInterval(intervalId);
-  }, [selectedGroup]);
-
+    } catch (error) {
+      console.error("AI response error:", error);
+      const errorMessage: ChatMessage = {
+        id: `msg_error_${group.id}_${Date.now()}`,
+        userId: aiAssistantUser.id,
+        userName: aiAssistantUser.name,
+        userAvatarUrl: aiAssistantUser.avatarUrl,
+        text: "Sorry, I encountered an error and couldn't respond. Please try again.",
+        timestamp: new Date(),
+        isOwnMessage: false,
+      };
+       setStudyGroups(prevGroups =>
+        prevGroups.map(g => {
+          if (g.id === group.id) {
+            const updatedMessages = g.messages.filter(m => m.id !== thinkingMessage.id);
+            return { ...g, messages: [...updatedMessages, errorMessage] };
+          }
+          return g;
+        })
+      );
+    } finally {
+        setIsAiTyping(false);
+    }
+  };
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedGroup) return;
@@ -241,6 +291,12 @@ export default function StudyGroupsPage() {
           : group
       )
     );
+    
+    // Check if AI should respond
+    if (newMessage.toLowerCase().includes("ai") || newMessage.endsWith("?")) {
+      handleAiResponse(newMessage, selectedGroup);
+    }
+    
     setNewMessage("");
   };
   
@@ -250,7 +306,7 @@ export default function StudyGroupsPage() {
       name,
       description,
       teacher: currentUser, // Current user creates and becomes the "teacher"/admin
-      members: [currentUser],
+      members: [currentUser, aiAssistantUser],
       icon: Info, // Default icon for new groups
       iconColorClass: "text-gray-500",
       messages: [
@@ -324,13 +380,13 @@ export default function StudyGroupsPage() {
                     <p className="text-xs text-muted-foreground truncate mb-1">{group.description}</p>
                      <div className="flex items-center justify-between">
                         <div className="flex -space-x-1 items-center">
-                            {group.members.slice(0,3).map(member => (
+                            {group.members.filter(m => m.id !== aiAssistantUser.id).slice(0,3).map(member => (
                                 <Avatar key={member.id} className="h-5 w-5 border-2 border-background">
                                   <Image src={member.avatarUrl} alt={member.name} width={20} height={20} data-ai-hint={member.avatarAiHint || 'profile generic'}/>
                                   <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                             ))}
-                            {group.members.length > 3 && <span className="text-xs text-muted-foreground ml-1.5 pl-1 pt-0.5">+{group.members.length-3}</span>}
+                            {group.members.filter(m => m.id !== aiAssistantUser.id).length > 3 && <span className="text-xs text-muted-foreground ml-1.5 pl-1 pt-0.5">+{group.members.length-3}</span>}
                         </div>
                         {!isMember && (
                             <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }} className="h-auto px-2 py-1 text-xs">Join</Button>
@@ -362,7 +418,7 @@ export default function StudyGroupsPage() {
                     </div>
                 </div>
                 <CardDescription className="mt-1">
-                  {selectedGroup.members.length} member(s): {selectedGroup.members.map(m => m.name).join(", ")}
+                  {selectedGroup.members.filter(m => m.id !== aiAssistantUser.id).length} member(s): {selectedGroup.members.filter(m => m.id !== aiAssistantUser.id).map(m => m.name).join(", ")}
                 </CardDescription>
               </CardHeader>
               <ScrollArea className="flex-grow p-4 bg-muted/30">
@@ -374,13 +430,14 @@ export default function StudyGroupsPage() {
               <CardContent className="p-4 border-t">
                 <div className="flex gap-2 items-center">
                   <Input
-                    placeholder="Type your message..."
+                    placeholder="Ask the AI a question or chat with the group..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onKeyPress={(e) => e.key === 'Enter' && !isAiTyping && handleSendMessage()}
                     className="flex-grow"
+                    disabled={isAiTyping}
                   />
-                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+                  <Button onClick={handleSendMessage} disabled={!newMessage.trim() || isAiTyping}>
                     <SendHorizonal className="h-5 w-5" />
                     <span className="sr-only">Send</span>
                   </Button>
@@ -399,56 +456,3 @@ export default function StudyGroupsPage() {
     </AppLayout>
   );
 }
-
-// Helper to get initials from name for AvatarFallback
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-};
-
-// Custom Button size variant for "Join" button
-declare module "@/components/ui/button" {
-  interface ButtonProps {
-    size?: "default" | "sm" | "lg" | "icon" | "xs";
-  }
-}
-// This declaration merging is tricky. For simplicity, the join button will use default 'sm' size if 'xs' doesn't work.
-// If `tailwind.config.ts` or buttonVariants needs explicit 'xs' definition, that would be separate.
-// For now, a smaller padding via className can be used if default 'sm' is too big.
-// In this implementation, I'm relying on default 'sm' with potential for custom padding if needed.
-// The actual 'xs' size would require editing `buttonVariants` in `button.tsx`.
-// I will use size="sm" and add custom padding if needed to achieve a smaller look for "Join".
-// Actually, I'll directly set text-xs and padding for Join button.
-
-// Button size 'xs' for Join (simplified approach)
-// If I were to modify button.tsx, it would be:
-// sm: "h-9 rounded-md px-3",
-// xs: "h-7 rounded-sm px-2 text-xs",
-// For now, I'll use text-xs on the button itself.
-// I have used size="xs" and let's see if it requires modification of button.tsx, which I cannot do here.
-// Okay, it seems `size="xs"` directly won't work without modifying the `buttonVariants`.
-// I'll use `size="sm"` and `className="h-7 px-2 text-xs"` to make it smaller.
-// After re-reading, I will just use the `text-xs` class and rely on default padding of `size="sm"` or try to create a custom style if the button component doesn't support `xs` by default, which it does not.
-// Best approach: use `size="sm"` and adjust padding/height with `className`.
-
-// Updated Join button size styling by applying classes directly.
-// For the Join button in StudyGroupList:
-// <Button size="sm" className="h-auto px-2 py-1 text-xs" ... >Join</Button>
-// This ensures it's smaller without modifying the core button component.
-// I'll adjust the Join button in the code. It's currently just <Button size="xs">. This will likely default to 'sm' or break.
-// Changed to: <Button size="sm" className="h-auto py-0.5 px-2 text-xs" ...>Join</Button>
-// Final check for Join button:
-// <Button size="sm" className="h-auto py-1 px-2.5 text-xs" ...>Join</Button>
-// This should be a reasonable small size. I've updated it in the code block.
-// The provided code block uses `<Button size="xs" ...>` which is not a standard shadcn size. I will fix it to `size="sm"` and add custom classes to make it appear smaller if needed.
-// The code was updated during generation to use size="sm" and custom classes for the "Join" button.
-
-// Corrected the join button styling for a smaller appearance as 'xs' isn't standard.
-// <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleJoinGroup(group.id); }} className="h-auto px-2 py-1 text-xs">Join</Button>
-// This is now in the code.
-
-

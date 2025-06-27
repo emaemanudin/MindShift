@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Removed useRouter
+import { usePathname, useRouter } from "next/navigation";
 import {
   GraduationCap,
   Home,
@@ -13,11 +13,11 @@ import {
   Users,
   Video,
   Settings,
-  // LogOut, // Removed LogOut
+  LogOut,
   SearchCode,
-  // Loader2, // Removed Loader2
+  Loader2,
 } from "lucide-react";
-// import { UserAvatar } from "@/components/shared/user-avatar"; // Removed UserAvatar
+import { UserAvatar } from "@/components/shared/user-avatar";
 import {
   SidebarHeader,
   SidebarContent as SidebarMainContent,
@@ -29,10 +29,10 @@ import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-// import { Button } from "@/components/ui/button"; // Removed Button
-// import { signOutUser } from "@/lib/firebase/auth"; // Removed signOutUser
-// import { useToast } from "@/hooks/use-toast"; // Removed useToast
-// import { useAuth } from "@/components/auth/auth-provider"; // Removed useAuth
+import { Button } from "@/components/ui/button";
+import { signOutUser } from "@/lib/firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/auth-provider";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -52,45 +52,61 @@ const bottomNavItems = [
 
 export function AppSidebarContent() {
   const pathname = usePathname();
-  // const router = useRouter();
-  // const { toast } = useToast();
-  // const { user, isLoading } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { user, isLoading } = useAuth();
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await signOutUser();
-  //     toast({
-  //       title: "Logged Out",
-  //       description: "You have been successfully logged out.",
-  //     });
-  //     router.push("/login");
-  //   } catch (error) {
-  //     console.error("Logout error:", error);
-  //     toast({
-  //       title: "Logout Failed",
-  //       description: "Could not log out. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   }
-  // };
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Failed",
+        description: "Could not log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
       <SidebarHeader className="p-4 gradient-bg-sidebar text-primary-foreground">
         <Link href="/" className="flex items-center gap-3">
           <GraduationCap className="h-8 w-8" />
-          <h1 className="text-2xl font-bold">StudyGuru</h1>
+          <h1 className="text-2xl font-bold">MindShift</h1>
         </Link>
       </SidebarHeader>
       <SidebarGroup className="p-4 border-b">
-        {/* Removed user info display */}
-         <div className="flex items-center">
-             {/* <UserAvatar fallbackInitials="SG" /> Guest User / Placeholder */}
+        {isLoading ? (
+          <div className="flex items-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <div className="ml-3 space-y-1">
+              <p className="text-sm font-semibold">Loading...</p>
+            </div>
+          </div>
+        ) : user ? (
+          <div className="flex items-center">
+             <UserAvatar src={user.photoURL} fallbackInitials={user.displayName?.charAt(0) || "U"} size="md"/>
              <div className="ml-3">
-                <p className="font-semibold text-sm">StudyGuru App</p>
+                <p className="font-semibold text-sm truncate">{user.displayName || "User"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+        ) : (
+         <div className="flex items-center">
+             <UserAvatar fallbackInitials="MS" />
+             <div className="ml-3">
+                <p className="font-semibold text-sm">MindShift App</p>
                 <p className="text-xs text-muted-foreground">Explore features</p>
             </div>
           </div>
+        )}
       </SidebarGroup>
 
       <SidebarMainContent className="flex-grow">
@@ -102,7 +118,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
-                // disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")} // Removed disabled logic
+                disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")}
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -128,7 +144,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href}
                 className="justify-start"
                 tooltip={item.label}
-                // disabled={isLoading || !user} // Removed disabled logic
+                disabled={isLoading || !user}
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />
@@ -137,7 +153,19 @@ export function AppSidebarContent() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-           {/* Removed Logout Button */}
+          {user && (
+             <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleLogout}
+                  className="justify-start"
+                  tooltip="Log Out"
+                  disabled={isLoading}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Log Out</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
          </SidebarMenu>
       </SidebarFooter>
     </>

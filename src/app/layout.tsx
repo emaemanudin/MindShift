@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -14,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudyGuru - Advanced Student Learning Platform",
+  title: "MindShift - Advanced Student Learning Platform",
   description: "Your personalized hub for focused learning and academic success.",
 };
 
