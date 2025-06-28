@@ -16,6 +16,7 @@ import {
   LogOut,
   SearchCode,
   Loader2,
+  Bot,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
@@ -41,7 +42,7 @@ const navItems = [
   { href: "/assignments", label: "Assignments", icon: ListChecks, badge: "3" },
   { href: "/progress", label: "Progress", icon: LineChart },
   { href: "/resource-finder", label: "Resource Finder", icon: SearchCode },
-  { href: "/study-groups", label: "Study Groups", icon: Users, badge: "New" , badgeVariant: "default" as "default" | "secondary" | "destructive" | "outline" | null | undefined },
+  { href: "/study-groups", label: "Study Buddy AI", icon: Bot, badge: "New" , badgeVariant: "default" as "default" | "secondary" | "destructive" | "outline" | null | undefined },
   { href: "/virtual-classroom", label: "Virtual Classroom", icon: Video },
 ];
 

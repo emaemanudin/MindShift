@@ -134,13 +134,13 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
   );
 }
 
-// Component for Create Group Dialog
-interface CreateGroupDialogProps {
-  onGroupCreate: (name: string, description: string) => void;
+// Component for Create Chat Dialog
+interface CreateChatDialogProps {
+  onChatCreate: (name: string, description: string) => void;
   children: React.ReactNode;
 }
 
-function CreateGroupDialog({ onGroupCreate, children }: CreateGroupDialogProps) {
+function CreateChatDialog({ onChatCreate, children }: CreateChatDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -148,14 +148,14 @@ function CreateGroupDialog({ onGroupCreate, children }: CreateGroupDialogProps) 
 
   const handleSubmit = () => {
     if (!name.trim() || !description.trim()) {
-      toast({ title: "Error", description: "Group name and description are required.", variant: "destructive" });
+      toast({ title: "Error", description: "Chat name and description are required.", variant: "destructive" });
       return;
     }
-    onGroupCreate(name, description);
+    onChatCreate(name, description);
     setName("");
     setDescription("");
     setIsOpen(false);
-    toast({ title: "Group Created!", description: `The group "${name}" has been successfully created.`, variant: "default"});
+    toast({ title: "Chat Created!", description: `The chat "${name}" has been successfully created.`, variant: "default"});
   };
 
   return (
@@ -163,20 +163,20 @@ function CreateGroupDialog({ onGroupCreate, children }: CreateGroupDialogProps) 
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center"><PlusCircle className="mr-2 h-5 w-5" /> Create New Study Group</DialogTitle>
+          <DialogTitle className="flex items-center"><PlusCircle className="mr-2 h-5 w-5" /> Create New Study Chat</DialogTitle>
           <DialogDescription>
-            Fill in the details to start a new study group. The AI assistant will adapt to your group's topic.
+            Fill in the details to start a new study chat. The AI assistant will adapt to your chat's topic.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          <Input placeholder="Group Name (e.g., Advanced Calculus)" value={name} onChange={(e) => setName(e.target.value)} />
-          <Textarea placeholder="Group Description (e.g., We focus on weekly problem sets and exam prep.)" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Input placeholder="Chat Name (e.g., Advanced Calculus)" value={name} onChange={(e) => setName(e.target.value)} />
+          <Textarea placeholder="Chat Description (e.g., We focus on weekly problem sets and exam prep.)" value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleSubmit}>Create Group</Button>
+          <Button onClick={handleSubmit}>Create Chat</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -347,14 +347,14 @@ export default function StudyGroupsPage() {
           <CardHeader className="border-b">
             <div className="flex justify-between items-center">
               <CardTitle className="text-xl flex items-center">
-                <Users className="mr-2 h-6 w-6 text-primary" />
-                Study Groups
+                <Bot className="mr-2 h-6 w-6 text-primary" />
+                Study Buddy
               </CardTitle>
-              <CreateGroupDialog onGroupCreate={handleCreateGroup}>
-                <Button variant="ghost" size="icon" aria-label="Create new group">
+              <CreateChatDialog onChatCreate={handleCreateGroup}>
+                <Button variant="ghost" size="icon" aria-label="Create new chat">
                   <PlusCircle className="h-5 w-5 text-primary" />
                 </Button>
-              </CreateGroupDialog>
+              </CreateChatDialog>
             </div>
           </CardHeader>
           <ScrollArea className="flex-grow">
@@ -447,7 +447,7 @@ export default function StudyGroupsPage() {
           ) : (
             <Card className="h-full flex flex-col items-center justify-center text-muted-foreground shadow-lg bg-muted/30">
               <MessageSquare className="h-16 w-16 mb-4" />
-              <p className="text-lg">Select a study group to start chatting</p>
+              <p className="text-lg">Select a chat to start</p>
               <p className="text-sm">or create a new one!</p>
             </Card>
           )}
