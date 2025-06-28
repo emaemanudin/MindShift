@@ -4,23 +4,19 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useToast } from "./use-toast";
 import { saveAs } from "file-saver";
+import type { ChatMessage } from "@/components/virtual-classroom/ChatPanel";
 
-// Types
 interface Participant {
   id: string;
   name: string;
   isHost?: boolean;
-}
-
-interface ChatMessage {
-  id: string;
-  sender: string;
-  text: string;
-  timestamp: string;
+  isMuted?: boolean;
+  handRaised?: boolean;
+  isLocal?: boolean;
 }
 
 interface DataChannelMessage {
-  type: "chat" | "hand-raise" | "mute-request" | "name-update";
+  type: "chat" | "hand-raise" | "name-update";
   payload: any;
 }
 
@@ -28,17 +24,16 @@ const PC_CONFIG: RTCConfiguration = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
-export function useWebRTC() {
+export function useWebRTC(userName: string, onPeerConnected: () => void) {
   const { toast } = useToast();
   
-  // Refs for core WebRTC objects and media
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   
-  // State variables
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -53,15 +48,13 @@ export function useWebRTC() {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  const [localUsername, setLocalUsername] = useState("");
-
   const sendData = useCallback((message: DataChannelMessage) => {
     if (dataChannelRef.current?.readyState === "open") {
       dataChannelRef.current.send(JSON.stringify(message));
     }
   }, []);
 
-  const handleDataChannelMessage = (event: MessageEvent) => {
+  const handleDataChannelMessage = useCallback((event: MessageEvent) => {
     const msg: DataChannelMessage = JSON.parse(event.data);
     switch (msg.type) {
       case "chat":
@@ -71,43 +64,35 @@ export function useWebRTC() {
         setParticipants(prev => prev.map(p => p.id === 'remote' ? {...p, handRaised: msg.payload.raised} : p));
         toast({ title: "Notification", description: `${msg.payload.name} ${msg.payload.raised ? 'raised' : 'lowered'} their hand.` });
         break;
-      case "mute-request":
-        if (localStreamRef.current) {
-            localStreamRef.current.getAudioTracks().forEach(track => track.enabled = false);
-            setIsMuted(true);
-            toast({ title: "Host Action", description: "The host has muted you." });
-        }
-        break;
-       case "name-update":
-        setParticipants(prev => prev.map(p => p.id === 'remote' ? {...p, name: msg.payload.name} : p));
+      case "name-update":
+        setParticipants(prev => {
+          const remoteUserExists = prev.some(p => p.id === 'remote');
+          if (remoteUserExists) {
+            return prev.map(p => p.id === 'remote' ? {...p, name: msg.payload.name} : p);
+          }
+          return [...prev, { id: 'remote', name: msg.payload.name, isLocal: false }];
+        });
         break;
     }
-  };
-
+  }, [toast]);
+  
   const setupDataChannel = useCallback((pc: RTCPeerConnection) => {
-    const channel = pc.createDataChannel("chat");
-    channel.onmessage = handleDataChannelMessage;
-    channel.onopen = () => {
-      sendData({ type: 'name-update', payload: { name: localUsername }});
-    };
-    dataChannelRef.current = channel;
-
     pc.ondatachannel = (event) => {
-      const receiveChannel = event.channel;
-      receiveChannel.onmessage = handleDataChannelMessage;
-      dataChannelRef.current = receiveChannel;
+      dataChannelRef.current = event.channel;
+      dataChannelRef.current.onmessage = handleDataChannelMessage;
+      dataChannelRef.current.onopen = () => {
+        sendData({ type: 'name-update', payload: { name: userName }});
+        onPeerConnected();
+      };
     };
-  }, [localUsername, sendData]);
-
+  }, [handleDataChannelMessage, onPeerConnected, sendData, userName]);
+  
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(PC_CONFIG);
     
-    setupDataChannel(pc);
-
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        // In a real app, this would be sent to the signaling server
-        console.log("ICE Candidate:", JSON.stringify(event.candidate));
+        console.log("ICE Candidate (send to peer):", JSON.stringify(event.candidate));
       }
     };
 
@@ -122,13 +107,12 @@ export function useWebRTC() {
         if(pc.connectionState === 'connected') {
             setConnectionTime(prev => ({...prev, start: Date.now()}));
             toast({ title: "Success!", description: "Peer connection established."});
-            setParticipants(prev => [...prev, {id: 'remote', name: 'Remote User'}]);
         }
         if(pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
             setRemoteStream(null);
             if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
         }
-    }
+    };
 
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
@@ -137,12 +121,11 @@ export function useWebRTC() {
     }
 
     peerRef.current = pc;
+    setupDataChannel(pc);
     return pc;
   }, [setupDataChannel, toast]);
   
-  const initialize = useCallback(async (name: string) => {
-    setLocalUsername(name);
-    setParticipants([{ id: 'local', name }]);
+  const initializeStream = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setLocalStream(stream);
@@ -150,33 +133,55 @@ export function useWebRTC() {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
+      setParticipants([{ id: 'local', name: userName, isLocal: true }]);
     } catch (error) {
       toast({ variant: "destructive", title: "Media Error", description: "Could not access camera/microphone." });
       console.error("Media device error:", error);
     }
-  }, [toast]);
+  }, [toast, userName]);
   
-  const hangUp = useCallback(() => {
-    // Stop all streams
-    localStreamRef.current?.getTracks().forEach(track => track.stop());
-    screenStreamRef.current?.getTracks().forEach(track => track.stop());
+  const createOffer = useCallback(async () => {
+    const pc = createPeerConnection();
+    const dataChannel = pc.createDataChannel("chat");
+    dataChannel.onmessage = handleDataChannelMessage;
+    dataChannel.onopen = () => {
+      sendData({ type: 'name-update', payload: { name: userName }});
+      onPeerConnected();
+    };
+    dataChannelRef.current = dataChannel;
     
-    // Stop recording if active
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    return offer;
+  }, [createPeerConnection, handleDataChannelMessage, onPeerConnected, sendData, userName]);
+  
+  const createAnswer = useCallback(async (offer: RTCSessionDescriptionInit) => {
+    const pc = createPeerConnection();
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    return answer;
+  }, [createPeerConnection]);
+
+  const addAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
+    if (peerRef.current && peerRef.current.signalingState !== 'stable') {
+      await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+    }
+  }, []);
+
+  const hangUp = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
     }
-    
-    // Close peer connection
+    localStreamRef.current?.getTracks().forEach(track => track.stop());
+    screenStreamRef.current?.getTracks().forEach(track => track.stop());
     peerRef.current?.close();
-
-    // Reset state
     setLocalStream(null);
     setRemoteStream(null);
     setIsMuted(false);
     setIsVideoOff(false);
     setIsScreenSharing(false);
-    setIsRecording(false);
-    setHandRaised(false);
+    setParticipants([]);
     setChatMessages([]);
     peerRef.current = null;
     dataChannelRef.current = null;
@@ -202,27 +207,19 @@ export function useWebRTC() {
     if (!videoSender) return;
 
     if (isScreenSharing) {
-        // Stop screen share
         screenStreamRef.current?.getTracks().forEach(track => track.stop());
         const camTrack = localStreamRef.current?.getVideoTracks()[0];
-        if (camTrack) {
-            videoSender.replaceTrack(camTrack);
-        }
+        if (camTrack) await videoSender.replaceTrack(camTrack);
         setIsScreenSharing(false);
         screenStreamRef.current = null;
     } else {
-        // Start screen share
         try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
             const screenTrack = stream.getVideoTracks()[0];
-            videoSender.replaceTrack(screenTrack);
+            await videoSender.replaceTrack(screenTrack);
             screenStreamRef.current = stream;
             setIsScreenSharing(true);
-            screenTrack.onended = () => { // User clicked "Stop sharing" in browser UI
-                 const camTrack = localStreamRef.current?.getVideoTracks()[0];
-                 if(camTrack) videoSender.replaceTrack(camTrack);
-                 setIsScreenSharing(false);
-            };
+            screenTrack.onended = () => toggleScreenShare(); // Call again to revert
         } catch (error) {
             toast({ variant: "destructive", title: "Screen Share Failed" });
             console.error("Screen share error", error);
@@ -233,32 +230,34 @@ export function useWebRTC() {
   const toggleRecording = useCallback(() => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
-      setIsRecording(false);
+      toast({ title: "Recording Stopped", description: "Your recording is being prepared for download." });
     } else {
-        const streamToRecord = screenStreamRef.current || remoteStream || localStream;
+        const streamToRecord = remoteStream || localStream;
         if (!streamToRecord) {
             toast({variant: "destructive", title: "Recording Error", description: "No stream available to record."});
             return;
         }
         
-        const recordedChunks: Blob[] = [];
-        const combinedStream = new MediaStream([
-            ...streamToRecord.getVideoTracks(),
-            ...(localStreamRef.current?.getAudioTracks() || [])
-        ]);
+        const audioTracks = [
+            ...(localStreamRef.current?.getAudioTracks() || []),
+            ...(remoteStream?.getAudioTracks() || [])
+        ];
+        const combinedStream = new MediaStream([ ...streamToRecord.getVideoTracks(), ...audioTracks ]);
         
         mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: "video/webm" });
 
         mediaRecorderRef.current.ondataavailable = (e) => {
-            if (e.data.size > 0) recordedChunks.push(e.data);
+            if (e.data.size > 0) recordedChunksRef.current.push(e.data);
         };
 
         mediaRecorderRef.current.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: "video/webm" });
+            const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
             saveAs(blob, `mindshift-recording-${Date.now()}.webm`);
+            recordedChunksRef.current = [];
+            setIsRecording(false);
         };
         
-        mediaRecorderRef.current.start();
+        mediaRecorderRef.current.start(1000); // 1s timeslice
         setIsRecording(true);
         toast({ title: "Recording Started", description: "The session is now being recorded locally." });
     }
@@ -267,24 +266,23 @@ export function useWebRTC() {
   const raiseHand = useCallback(() => {
     const newHandRaisedState = !handRaised;
     setHandRaised(newHandRaisedState);
-    sendData({ type: "hand-raise", payload: { raised: newHandRaisedState, name: localUsername } });
-  }, [handRaised, localUsername, sendData]);
+    sendData({ type: "hand-raise", payload: { raised: newHandRaisedState, name: userName } });
+  }, [handRaised, userName, sendData]);
 
   const sendMessage = useCallback((text: string) => {
     const message = {
         id: crypto.randomUUID(),
-        sender: localUsername,
+        sender: 'You',
         text,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    sendData({ type: "chat", payload: message });
-    setChatMessages(prev => [...prev, message]); // Add to own chat immediately
-  }, [localUsername, sendData]);
+    sendData({ type: "chat", payload: {...message, sender: userName} });
+    setChatMessages(prev => [...prev, message]);
+  }, [userName, sendData]);
 
   return {
     localVideoRef,
     remoteVideoRef,
-    peer: peerRef.current,
     localStream,
     remoteStream,
     isMuted,
@@ -296,16 +294,9 @@ export function useWebRTC() {
     participants,
     connectionTime,
     actions: {
-      initialize,
-      createPeerConnection,
-      setupDataChannel,
-      hangUp,
-      toggleMute,
-      toggleVideo,
-      toggleScreenShare,
-      toggleRecording,
-      raiseHand,
-      sendMessage
+      initializeStream, createOffer, createAnswer, addAnswer, hangUp,
+      toggleMute, toggleVideo, toggleScreenShare, toggleRecording,
+      raiseHand, sendMessage
     },
   };
 }

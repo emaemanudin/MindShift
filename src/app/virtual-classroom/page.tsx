@@ -13,7 +13,8 @@ import { ChatPanel } from "@/components/virtual-classroom/ChatPanel";
 import { AttendanceList } from "@/components/virtual-classroom/AttendanceList";
 import { useWebRTC } from "@/hooks/use-webrtc";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Edit, Users, Video, VideoOff } from "lucide-react";
+import { Download, Edit, Users, VideoOff } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type CallState = "lobby" | "in-call" | "ended";
 
@@ -22,11 +23,13 @@ export default function VirtualClassroomPage() {
   const [userName, setUserName] = useState("");
   const [callState, setCallState] = useState<CallState>("lobby");
   const [notes, setNotes] = useState("");
+  const [signalingState, setSignalingState] = useState({ offer: "", answer: "" });
+  const [offerCreated, setOfferCreated] = useState(false);
+  const [isPeerConnected, setIsPeerConnected] = useState(false);
 
   const {
     localVideoRef,
     remoteVideoRef,
-    peer,
     localStream,
     remoteStream,
     isMuted,
@@ -38,7 +41,7 @@ export default function VirtualClassroomPage() {
     participants,
     connectionTime,
     actions,
-  } = useWebRTC();
+  } = useWebRTC(userName, () => setIsPeerConnected(true));
 
   useEffect(() => {
     const savedName = localStorage.getItem("virtual-classroom-username");
@@ -50,14 +53,50 @@ export default function VirtualClassroomPage() {
   const handleJoinCall = (name: string) => {
     setUserName(name);
     localStorage.setItem("virtual-classroom-username", name);
-    actions.initialize(name);
+    actions.initializeStream();
     setCallState("in-call");
-    toast({ title: "Welcome!", description: "You have entered the classroom. Use the signaling controls to connect to a peer." });
+    toast({ title: "Welcome!", description: "You have entered the classroom. Create an offer to connect." });
+  };
+  
+  const createOffer = async () => {
+      const offer = await actions.createOffer();
+      setSignalingState({ ...signalingState, offer: JSON.stringify(offer) });
+      setOfferCreated(true);
+      toast({title: "Offer Created", description: "Copy the offer and send it to your peer."});
+  };
+  
+  const createAnswer = async () => {
+      if (!signalingState.offer) {
+          toast({variant: "destructive", title: "Error", description: "You must paste an offer first."});
+          return;
+      }
+      try {
+        const answer = await actions.createAnswer(JSON.parse(signalingState.offer));
+        setSignalingState({ ...signalingState, answer: JSON.stringify(answer) });
+        toast({title: "Answer Created", description: "Copy the answer and send it back to the first peer."});
+      } catch (e) {
+        toast({variant: "destructive", title: "Error", description: "Invalid offer format."});
+      }
+  };
+  
+  const addAnswer = async () => {
+      if (!signalingState.answer) {
+          toast({variant: "destructive", title: "Error", description: "You must paste an answer first."});
+          return;
+      }
+      try {
+        await actions.addAnswer(JSON.parse(signalingState.answer));
+      } catch (e) {
+        toast({variant: "destructive", title: "Error", description: "Invalid answer format."});
+      }
   };
 
   const handleEndCall = () => {
     actions.hangUp();
     setCallState("ended");
+    setSignalingState({ offer: "", answer: ""});
+    setOfferCreated(false);
+    setIsPeerConnected(false);
     toast({ title: "Meeting Ended", description: "You have left the meeting." });
   };
   
@@ -80,17 +119,42 @@ export default function VirtualClassroomPage() {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
             <div className="lg:col-span-3 flex flex-col gap-4">
+               {/* Signaling Controls */}
+              {!isPeerConnected && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Connection Setup</CardTitle>
+                    <CardDescription>Use these controls to manually connect to your peer.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Textarea placeholder="1. Click 'Create Offer' or paste an offer here..." value={signalingState.offer} onChange={(e) => setSignalingState({...signalingState, offer: e.target.value})} />
+                             <Button onClick={createOffer} disabled={offerCreated}>Create Offer</Button>
+                        </div>
+                        <div className="space-y-2">
+                             <Textarea placeholder="2. Paste an answer here or generate one..." value={signalingState.answer} onChange={(e) => setSignalingState({...signalingState, answer: e.target.value})} />
+                             <div className="flex gap-2">
+                                <Button onClick={createAnswer}>Create Answer</Button>
+                                <Button onClick={addAnswer} disabled={!offerCreated}>Add Answer</Button>
+                             </div>
+                        </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               <Card className="flex-grow relative bg-muted/30">
                 <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-contain rounded-md" />
                 {!remoteStream && (
-                   <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                        <p>Waiting for remote user to connect...</p>
+                   <div className="absolute inset-0 flex flex-col gap-4 items-center justify-center text-muted-foreground p-4">
+                        <p className="text-xl font-medium">Waiting for peer...</p>
+                        <p className="text-sm text-center">Once the peer connects via the signaling controls above, their video will appear here.</p>
                    </div>
                 )}
                  <div className="absolute top-4 right-4 w-1/4 min-w-[150px] aspect-video">
                     <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover rounded-md border-2 border-background shadow-lg" />
                     {isVideoOff && (
-                        <div className="absolute inset-0 bg-black flex items-center justify-center rounded-md border-2 border-background text-white">
+                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-md border-2 border-background text-white">
                             <VideoOff className="h-8 w-8"/>
                         </div>
                     )}
@@ -103,7 +167,7 @@ export default function VirtualClassroomPage() {
                 onToggleScreenShare={actions.toggleScreenShare} isScreenSharing={isScreenSharing}
                 onToggleRecording={actions.toggleRecording} isRecording={isRecording}
                 onRaiseHand={actions.raiseHand} handRaised={handRaised}
-                isConnected={!!peer}
+                isConnected={!!localStream}
               />
             </div>
             <div className="lg:col-span-1 flex flex-col gap-4">
@@ -115,7 +179,7 @@ export default function VirtualClassroomPage() {
                        <AttendanceList participants={participants} />
                     </CardContent>
                 </Card>
-                <ChatPanel messages={chatMessages} onSendMessage={actions.sendMessage} />
+                <ChatPanel messages={chatMessages} onSendMessage={actions.sendMessage} disabled={!isPeerConnected} />
             </div>
           </div>
         );
@@ -153,7 +217,7 @@ export default function VirtualClassroomPage() {
                <Textarea 
                 value={notes} 
                 onChange={e => setNotes(e.target.value)} 
-                placeholder="Type your notes here..." 
+                placeholder="Type your personal notes here..." 
                 className="h-32"
                 disabled={callState === 'ended'}
                />

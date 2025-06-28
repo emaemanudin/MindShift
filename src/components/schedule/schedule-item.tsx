@@ -2,13 +2,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState, useEffect } from "react"; // Added useState, useEffect
-import { Card, CardContent } from "@/components/ui/card"; // Removed unused CardHeader, CardTitle, CardDescription
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, BellRing, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-// No need to import parseISO here if we stick to new Date(date) for toLocaleDateString
-// as the key is to move the toLocaleDateString call into useEffect.
 
 export interface ScheduleEventData {
   id: string;
@@ -43,7 +41,7 @@ export function ScheduleItem({
       // client's specific locale and timezone settings.
       // This calculation is deferred to the client-side after hydration.
       setClientFormattedDate(
-        new Date(date).toLocaleDateString(undefined, { // undefined uses client's default locale
+        new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { // Use T00:00:00 to avoid timezone issues
           weekday: 'short',
           month: 'short',
           day: 'numeric',
