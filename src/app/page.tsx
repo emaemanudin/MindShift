@@ -9,10 +9,9 @@ import { CourseCard, type Course } from "@/components/dashboard/course-card";
 import { TaskItem, type Task } from "@/components/dashboard/task-item";
 import { StudyGroupItem, type StudyGroup } from "@/components/dashboard/study-group-item";
 import { ActivityItem, type Activity } from "@/components/dashboard/activity-item";
-import { ResourceFinderCard } from "@/components/dashboard/resource-finder-card";
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
 import { cn } from "@/lib/utils";
-// import { useAuth } from "@/components/auth/auth-provider"; // Removed import
+import { useAuth } from "@/components/auth/auth-provider";
 
 import {
   BookOpenCheck,
@@ -34,7 +33,7 @@ import {
   Filter,
   Plus,
   Star,
-  // Loader2 // Removed Loader2
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,19 +72,19 @@ const recentActivities: Activity[] = [
 
 
 export default function DashboardPage() {
-  // const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // if (isLoading) {
-  //    return (
-  //     <AppLayout>
-  //       <div className="flex items-center justify-center h-full">
-  //         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-  //       </div>
-  //     </AppLayout>
-  //   );
-  // }
+  if (isLoading) {
+     return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
   
-  const userName = 'User'; // Generic username
+  const userName = user?.displayName || 'User';
 
   return (
     <AppLayout>
@@ -95,7 +94,7 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
             <p className="text-muted-foreground">
-              Welcome back, {userName}! Explore your study materials. {/* Generic welcome */}
+              Welcome back, {userName}! Explore your study materials.
             </p>
           </div>
         </div>
@@ -120,11 +119,6 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <PomodoroTimer />
           <ProgressOverview />
-        </div>
-        
-        {/* AI Resource Finder */}
-        <div>
-          <ResourceFinderCard />
         </div>
 
         {/* Courses Section */}
