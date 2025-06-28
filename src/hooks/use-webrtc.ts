@@ -61,17 +61,6 @@ export function useWebRTC() {
     }
   }, []);
 
-  const setupDataChannel = useCallback((pc: RTCPeerConnection) => {
-    pc.ondatachannel = (event) => {
-      const channel = event.channel;
-      dataChannelRef.current = channel;
-      channel.onmessage = handleDataChannelMessage;
-      channel.onopen = () => {
-          sendData({ type: 'name-update', payload: { name: localUsername }});
-      };
-    };
-  }, [localUsername]);
-
   const handleDataChannelMessage = (event: MessageEvent) => {
     const msg: DataChannelMessage = JSON.parse(event.data);
     switch (msg.type) {
@@ -94,6 +83,21 @@ export function useWebRTC() {
         break;
     }
   };
+
+  const setupDataChannel = useCallback((pc: RTCPeerConnection) => {
+    const channel = pc.createDataChannel("chat");
+    channel.onmessage = handleDataChannelMessage;
+    channel.onopen = () => {
+      sendData({ type: 'name-update', payload: { name: localUsername }});
+    };
+    dataChannelRef.current = channel;
+
+    pc.ondatachannel = (event) => {
+      const receiveChannel = event.channel;
+      receiveChannel.onmessage = handleDataChannelMessage;
+      dataChannelRef.current = receiveChannel;
+    };
+  }, [localUsername, sendData]);
 
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(PC_CONFIG);
@@ -118,6 +122,7 @@ export function useWebRTC() {
         if(pc.connectionState === 'connected') {
             setConnectionTime(prev => ({...prev, start: Date.now()}));
             toast({ title: "Success!", description: "Peer connection established."});
+            setParticipants(prev => [...prev, {id: 'remote', name: 'Remote User'}]);
         }
         if(pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
             setRemoteStream(null);
@@ -239,7 +244,7 @@ export function useWebRTC() {
         const recordedChunks: Blob[] = [];
         const combinedStream = new MediaStream([
             ...streamToRecord.getVideoTracks(),
-            ...localStreamRef.current!.getAudioTracks() // Always record local audio
+            ...(localStreamRef.current?.getAudioTracks() || [])
         ]);
         
         mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: "video/webm" });
