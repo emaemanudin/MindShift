@@ -334,7 +334,7 @@ export default function StudyGroupsPage() {
           : g
       )
     );
-    toast({ title: "Joined Group!", description: `You have successfully joined "${groupToJoin.name}".`, variant: "default" });
+    toast({ title: "Joined Chat!", description: `You have successfully joined "${groupToJoin.name}".`, variant: "default" });
 
   }, [studyGroups, toast]);
 
