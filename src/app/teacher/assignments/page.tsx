@@ -56,7 +56,7 @@ const mockAssignments: Assignment[] = [
     course: "Chemistry Crew",
     dueDate: "2025-07-22",
     submissions: [
-      { studentId: "s_dev", studentName: "Developer", studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", studentAvatarAiHint: "profile lego", status: "Needs Grading", submittedOn: "2025-07-21T14:00:00Z", grade: 80 }
+      { studentId: "s_dev", studentName: "Developer", studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", studentAvatarAiHint: "profile lego", status: "Needs Grading", submittedOn: "2025-07-21T14:00:00Z" }
     ]
   },
   {
