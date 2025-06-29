@@ -34,6 +34,7 @@ import {
   Globe,
   Link2,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -222,20 +223,20 @@ export default function SettingsPage() {
                         <CardDescription>Access other parts of the MindShift ecosystem.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <a href="/admin/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                        <Link href="/admin/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
                             <div>
                                 <h4 className="font-semibold">Admin Dashboard</h4>
                                 <p className="text-sm text-muted-foreground">Manage users, courses, and system-wide settings.</p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </a>
-                        <a href="#" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                        </Link>
+                         <Link href="/teacher/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
                              <div>
                                 <h4 className="font-semibold">Teacher Portal</h4>
                                 <p className="text-sm text-muted-foreground">Track student progress and manage classroom content.</p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </a>
+                        </Link>
                     </CardContent>
                  </Card>
               </CardContent>
