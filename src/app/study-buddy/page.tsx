@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { studyBuddy, StudyBuddyOutput } from "@/ai/flows/study-buddy";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -58,6 +60,56 @@ export default function StudyBuddyPage() {
   const [subject, setSubject] = useState("general");
   const [complexity, setComplexity] = useState("high-school");
   const [language, setLanguage] = useState("English");
+  
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Client-side only: initialize SpeechRecognition
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false; // Stop listening after user pauses
+        recognition.interimResults = true; // Get results as they come
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          const transcript = Array.from(event.results)
+            .map(result => result[0])
+            .map(result => result.transcript)
+            .join('');
+          setInput(transcript); // Update input field with live transcript
+        };
+        
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast({ variant: "destructive", title: "Voice Error", description: `Speech recognition failed: ${event.error}` });
+          setIsListening(false);
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      } else {
+        toast({ title: "Unsupported Browser", description: "Voice recognition is not supported in this browser." });
+      }
+    }
+  }, [toast]);
+
+  const handleListen = () => {
+    if (isLoading || !recognitionRef.current) return;
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+    setIsListening(!isListening);
+  };
 
   const scrollToBottom = () => {
     const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
@@ -69,10 +121,23 @@ export default function StudyBuddyPage() {
   };
   
   useEffect(scrollToBottom, [messages]);
+  
+  const playAudio = (audioDataUri: string) => {
+    if (audioRef.current) {
+        audioRef.current.src = audioDataUri;
+        audioRef.current.play().catch(e => console.error("Audio playback error:", e));
+    }
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    // Stop listening if user sends message manually
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -102,6 +167,9 @@ export default function StudyBuddyPage() {
         audioDataUri: result.audioDataUri,
       };
       setMessages((prev) => [...prev, assistantMessage]);
+      if (result.audioDataUri) {
+        playAudio(result.audioDataUri);
+      }
     } catch (error) {
       console.error("Study Buddy Error:", error);
       const errorMessage: Message = {
@@ -115,12 +183,6 @@ export default function StudyBuddyPage() {
     }
   };
 
-  const playAudio = (audioDataUri: string) => {
-    if (audioRef.current) {
-        audioRef.current.src = audioDataUri;
-        audioRef.current.play().catch(e => console.error("Audio playback error:", e));
-    }
-  }
 
   return (
     <AppLayout>
@@ -260,17 +322,20 @@ export default function StudyBuddyPage() {
                 </ScrollArea>
                 <CardContent className="p-4 border-t">
                     <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
-                    <Input
-                        placeholder="e.g., Explain the concept of recursion..."
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        disabled={isLoading}
-                        className="flex-grow"
-                    />
-                    <Button type="submit" disabled={isLoading || !input.trim()}>
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
-                        <span className="sr-only">Send</span>
-                    </Button>
+                      <Input
+                          placeholder="Type or speak your question..."
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          disabled={isLoading}
+                          className="flex-grow"
+                      />
+                      <Button type="button" variant="outline" size="icon" onClick={handleListen} disabled={isLoading || !recognitionRef.current} aria-label={isListening ? 'Stop listening' : 'Start listening'}>
+                          <Mic className={cn("h-5 w-5", isListening && "text-destructive animate-pulse")} />
+                      </Button>
+                      <Button type="submit" disabled={isLoading || !input.trim()}>
+                          {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <SendHorizonal className="h-5 w-5" />}
+                          <span className="sr-only">Send</span>
+                      </Button>
                     </form>
                     <audio ref={audioRef} className="hidden" />
                 </CardContent>
