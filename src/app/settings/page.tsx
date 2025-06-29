@@ -222,7 +222,7 @@ export default function SettingsPage() {
                         <CardDescription>Access other parts of the MindShift ecosystem.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <a href="#" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                        <a href="/admin/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
                             <div>
                                 <h4 className="font-semibold">Admin Dashboard</h4>
                                 <p className="text-sm text-muted-foreground">Manage users, courses, and system-wide settings.</p>
