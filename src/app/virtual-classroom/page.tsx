@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { saveAs } from "file-saver";
 import { Lobby } from "@/components/virtual-classroom/Lobby";
 import { CallControls } from "@/components/virtual-classroom/CallControls";
@@ -121,37 +122,43 @@ export default function VirtualClassroomPage() {
             <div className="lg:col-span-3 flex flex-col gap-4">
                {/* Signaling Controls */}
               {!isPeerConnected && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Connection Setup</CardTitle>
-                    <CardDescription>Use these controls to manually connect to your peer.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Textarea placeholder="1. Click 'Create Offer' or paste an offer here..." value={signalingState.offer} onChange={(e) => setSignalingState({...signalingState, offer: e.target.value})} />
-                             <Button onClick={createOffer} disabled={offerCreated}>Create Offer</Button>
-                        </div>
-                        <div className="space-y-2">
-                             <Textarea placeholder="2. Paste an answer here or generate one..." value={signalingState.answer} onChange={(e) => setSignalingState({...signalingState, answer: e.target.value})} />
-                             <div className="flex gap-2">
-                                <Button onClick={createAnswer}>Create Answer</Button>
-                                <Button onClick={addAnswer} disabled={!offerCreated}>Add Answer</Button>
-                             </div>
-                        </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Accordion type="single" collapsible defaultValue="item-1">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger className="text-base font-semibold">Connection Setup</AccordionTrigger>
+                    <AccordionContent>
+                      <Card className="border-none shadow-none">
+                        <CardDescription className="px-6 pb-2">Use these controls to manually connect to your peer. Peer 1 creates an offer, Peer 2 uses it to create an answer, then Peer 1 adds the answer.</CardDescription>
+                        <CardContent className="space-y-4 pt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                  <Label htmlFor="offer-input">Offer</Label>
+                                  <Textarea id="offer-input" placeholder="1. Click 'Create Offer' or paste an offer here..." value={signalingState.offer} onChange={(e) => setSignalingState({...signalingState, offer: e.target.value})} />
+                                   <Button onClick={createOffer} disabled={offerCreated}>Create Offer</Button>
+                              </div>
+                              <div className="space-y-2">
+                                   <Label htmlFor="answer-input">Answer</Label>
+                                   <Textarea id="answer-input" placeholder="2. Paste an answer here or generate one..." value={signalingState.answer} onChange={(e) => setSignalingState({...signalingState, answer: e.target.value})} />
+                                   <div className="flex gap-2">
+                                      <Button onClick={createAnswer}>Create Answer</Button>
+                                      <Button onClick={addAnswer} disabled={!offerCreated}>Add Answer</Button>
+                                   </div>
+                              </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
               <Card className="flex-grow relative bg-muted/30">
                 <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-contain rounded-md" />
                 {!remoteStream && (
                    <div className="absolute inset-0 flex flex-col gap-4 items-center justify-center text-muted-foreground p-4">
                         <p className="text-xl font-medium">Waiting for peer...</p>
-                        <p className="text-sm text-center">Once the peer connects via the signaling controls above, their video will appear here.</p>
+                        <p className="text-sm text-center">Once the peer connects via the signaling controls, their video will appear here.</p>
                    </div>
                 )}
-                 <div className="absolute top-4 right-4 w-1/4 min-w-[150px] aspect-video">
+                 <div className="absolute top-4 right-4 w-1/3 max-w-[250px] min-w-[150px] aspect-video">
                     <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover rounded-md border-2 border-background shadow-lg" />
                     {isVideoOff && (
                         <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-md border-2 border-background text-white">
@@ -201,28 +208,33 @@ export default function VirtualClassroomPage() {
   return (
     <AppLayout>
       <div className="flex flex-col h-[calc(100vh-var(--header-height)-2rem)] gap-4">
-        {callState !== "lobby" && (
-           <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center"><Edit className="mr-2"/>Personal Notes</CardTitle>
-                <div>
-                   <Button variant="outline" size="sm" onClick={handleSaveNotes} className="mr-2">Save Notes</Button>
-                   <Button variant="outline" size="sm" onClick={handleDownloadNotes}><Download className="mr-2 h-4 w-4"/>Download</Button>
-                </div>
-              </div>
-              <CardDescription>Your notes are saved in your browser and will persist after the call.</CardDescription>
-            </CardHeader>
-            <CardContent>
-               <Textarea 
-                value={notes} 
-                onChange={e => setNotes(e.target.value)} 
-                placeholder="Type your personal notes here..." 
-                className="h-32"
-                disabled={callState === 'ended'}
-               />
-            </CardContent>
-          </Card>
+        {callState === "in-call" && (
+           <Accordion type="single" collapsible>
+              <AccordionItem value="notes">
+                <AccordionTrigger>
+                   <div className="flex items-center gap-2 text-lg font-semibold">
+                      <Edit className="h-5 w-5"/>Personal Notes
+                   </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                   <Card className="border-none shadow-none">
+                      <CardDescription className="px-6 pb-2">Your notes are saved in your browser and will persist after the call.</CardDescription>
+                      <CardContent className="pt-2">
+                         <Textarea 
+                          value={notes} 
+                          onChange={e => setNotes(e.target.value)} 
+                          placeholder="Type your personal notes here..." 
+                          className="h-24"
+                         />
+                         <div className="flex justify-end gap-2 mt-2">
+                           <Button variant="outline" size="sm" onClick={handleSaveNotes}>Save Notes</Button>
+                           <Button variant="outline" size="sm" onClick={handleDownloadNotes}><Download className="mr-2 h-4 w-4"/>Download</Button>
+                        </div>
+                      </CardContent>
+                   </Card>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
         )}
         <div className="flex-grow">{renderContent()}</div>
       </div>

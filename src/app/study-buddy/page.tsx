@@ -14,6 +14,8 @@ import { studyBuddy, StudyBuddyOutput } from "@/ai/flows/study-buddy";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 interface Message {
   id: string;
@@ -216,44 +218,53 @@ export default function StudyBuddyPage() {
     <AppLayout>
         <div className="max-w-4xl mx-auto w-full space-y-4">
             {/* Control Panel */}
-            <Card className="shadow-md">
-                <CardHeader>
-                    <CardTitle className="flex items-center"><Settings className="mr-2 h-5 w-5"/>Smart Q&A Controls</CardTitle>
-                    <CardDescription>Adjust the AI's response to fit your needs.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <Label htmlFor="subject-select">Subject</Label>
-                        <Select value={subject} onValueChange={setSubject}>
-                            <SelectTrigger id="subject-select"><SelectValue placeholder="Select subject..."/></SelectTrigger>
-                            <SelectContent>
-                                {subjects.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                        <Settings className="h-5 w-5"/>
+                        <span className="font-semibold text-lg">AI Tutor Controls</span>
                     </div>
-                    <div>
-                        <Label htmlFor="complexity-select">Complexity Level</Label>
-                        <Select value={complexity} onValueChange={setComplexity}>
-                            <SelectTrigger id="complexity-select"><SelectValue placeholder="Select complexity..."/></SelectTrigger>
-                            <SelectContent>
-                                {complexities.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div>
-                        <Label htmlFor="language-select">Language</Label>
-                        <Select value={language} onValueChange={setLanguage}>
-                            <SelectTrigger id="language-select"><SelectValue placeholder="Select language..."/></SelectTrigger>
-                            <SelectContent>
-                                {languages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <Card className="border-none shadow-none">
+                        <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <Label htmlFor="subject-select">Subject</Label>
+                                <Select value={subject} onValueChange={setSubject}>
+                                    <SelectTrigger id="subject-select"><SelectValue placeholder="Select subject..."/></SelectTrigger>
+                                    <SelectContent>
+                                        {subjects.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="complexity-select">Complexity Level</Label>
+                                <Select value={complexity} onValueChange={setComplexity}>
+                                    <SelectTrigger id="complexity-select"><SelectValue placeholder="Select complexity..."/></SelectTrigger>
+                                    <SelectContent>
+                                        {complexities.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="language-select">Language</Label>
+                                <Select value={language} onValueChange={setLanguage}>
+                                    <SelectTrigger id="language-select"><SelectValue placeholder="Select language..."/></SelectTrigger>
+                                    <SelectContent>
+                                        {languages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
 
             {/* Chat Area */}
-            <div className="flex flex-col h-[calc(100vh-var(--header-height)-18rem)]">
+            <div className="flex flex-col h-[calc(100vh-var(--header-height)-12rem)]">
                 <Card className="flex-grow flex flex-col shadow-lg">
                 <CardHeader className="border-b text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -277,54 +288,61 @@ export default function StudyBuddyPage() {
                         key={message.id}
                         className={cn(
                             "flex items-start gap-3 p-3 rounded-lg",
-                            message.role === "user" ? "flex-row-reverse" : "flex-row"
+                            message.role === "user" ? "justify-end" : "justify-start"
                         )}
                         >
-                        <Avatar className="h-8 w-8 border">
-                            <AvatarFallback>
-                            {message.role === "user" ? <User /> : <Bot />}
-                            </AvatarFallback>
-                        </Avatar>
                         <div
                             className={cn(
                             "flex flex-col max-w-[85%]",
-                            message.role === "user" ? "items-end" : "items-start"
+                             message.role === "user" ? "items-end" : "items-start"
                             )}
                         >
-                            <div
-                            className={cn(
-                                "p-3 rounded-xl",
-                                message.role === "user"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-accent border"
-                            )}
-                            >
-                                {message.role === 'user' ? (
-                                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                                ) : message.structuredContent ? (
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <h4 className="font-semibold text-foreground mb-1">Explanation</h4>
-                                            <p className="whitespace-pre-wrap">{message.structuredContent.explanation}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-foreground mb-1">Examples</h4>
-                                            <ul className="list-disc list-inside space-y-1">
-                                                {message.structuredContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold text-foreground mb-1">Common Misconceptions</h4>
-                                            <ul className="list-disc list-inside space-y-1">
-                                                {message.structuredContent.misconceptions.map((mc, i) => <li key={i}>{mc}</li>)}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-sm whitespace-pre-wrap">{message.text}</p> // Fallback for error or simple messages
-                                )}
-                            </div>
-                            {message.role === 'assistant' && message.audioDataUri && (
+                          <div className="flex items-start gap-3">
+                              {message.role === 'assistant' && (
+                                <Avatar className="h-8 w-8 border">
+                                  <AvatarFallback><Bot /></AvatarFallback>
+                                </Avatar>
+                              )}
+                              <div
+                                  className={cn(
+                                  "p-3 rounded-xl",
+                                  message.role === "user"
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-accent border"
+                                  )}
+                              >
+                                  {message.role === 'user' ? (
+                                      <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                                  ) : message.structuredContent ? (
+                                      <div className="space-y-4 text-sm">
+                                          <div>
+                                              <h4 className="font-bold text-base text-foreground mb-1">Explanation</h4>
+                                              <p className="whitespace-pre-wrap text-muted-foreground">{message.structuredContent.explanation}</p>
+                                          </div>
+                                          <div>
+                                              <h4 className="font-bold text-base text-foreground mb-2">Examples</h4>
+                                              <ul className="list-disc list-outside space-y-2 pl-5 text-muted-foreground">
+                                                  {message.structuredContent.examples.map((ex, i) => <li key={i}>{ex}</li>)}
+                                              </ul>
+                                          </div>
+                                          <div>
+                                              <h4 className="font-bold text-base text-foreground mb-2">Common Misconceptions</h4>
+                                              <ul className="list-disc list-outside space-y-2 pl-5 text-muted-foreground">
+                                                  {message.structuredContent.misconceptions.map((mc, i) => <li key={i}>{mc}</li>)}
+                                              </ul>
+                                          </div>
+                                      </div>
+                                  ) : (
+                                      <p className="text-sm whitespace-pre-wrap">{message.text}</p> // Fallback for error or simple messages
+                                  )}
+                              </div>
+                              {message.role === 'user' && (
+                                <Avatar className="h-8 w-8 border">
+                                  <AvatarFallback><User /></AvatarFallback>
+                                </Avatar>
+                              )}
+                           </div>
+                           {message.role === 'assistant' && message.audioDataUri && (
                                 <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground" onClick={() => playAudio(message.audioDataUri!)}>
                                     <Volume2 className="h-4 w-4 mr-2" />
                                     Read Aloud
@@ -373,5 +391,3 @@ export default function StudyBuddyPage() {
     </AppLayout>
   );
 }
-
-    

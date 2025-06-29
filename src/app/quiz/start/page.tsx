@@ -171,8 +171,8 @@ export default function QuizStartPage() {
             <div className="w-full max-w-4xl h-[90vh] flex flex-col">
                 <header className="flex justify-between items-center p-4 bg-card rounded-t-lg border-b">
                     <h2 className="text-xl font-bold">{quizData.title}</h2>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-destructive text-destructive-foreground font-mono font-semibold">
-                       <Timer className="h-5 w-5" />
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-destructive text-destructive-foreground font-mono text-lg font-semibold">
+                       <Timer className="h-6 w-6" />
                        {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                     </div>
                 </header>
@@ -190,7 +190,7 @@ export default function QuizStartPage() {
                                 className="space-y-4"
                             >
                                 {currentQuestion.options.map(option => (
-                                    <div key={option} className="flex items-center space-x-3 p-4 border rounded-lg has-[:checked]:bg-accent">
+                                    <div key={option} className="flex items-center space-x-3 p-4 border rounded-lg has-[:checked]:bg-accent has-[:checked]:border-primary">
                                         <RadioGroupItem value={option} id={option} />
                                         <Label htmlFor={option} className="text-base font-normal cursor-pointer w-full">{option}</Label>
                                     </div>

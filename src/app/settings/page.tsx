@@ -72,77 +72,77 @@ export default function SettingsPage() {
           
           {/* Profile & Appearance Tab */}
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile</CardTitle>
-                <CardDescription>
-                  This is how your profile appears to others.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <UserAvatar
-                    src={user?.photoURL}
-                    fallbackInitials={userProfile.name.charAt(0) || "D"}
-                    size="lg"
-                  />
-                  <Button variant="outline">Upload New Picture</Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      value={userProfile.name}
-                      onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" type="email" value={userProfile.email} disabled />
-                  </div>
-                </div>
-                <Button>Save Profile</Button>
-              </CardContent>
-            </Card>
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>
-                  Customize the look and feel of the application.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="theme">Theme</Label>
-                  <Select value={theme} onValueChange={setTheme}>
-                    <SelectTrigger className="w-full md:w-[240px]">
-                      <SelectValue placeholder="Select theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System Default</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Note: Live theme toggling is in the header. This sets the default.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                   <Select defaultValue="en-us">
-                    <SelectTrigger className="w-full md:w-[240px]">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en-us">English (United States)</SelectItem>
-                      <SelectItem value="es-es">Español (España)</SelectItem>
-                      <SelectItem value="fr-fr">Français (France)</SelectItem>
-                      <SelectItem value="am-et">አማርኛ (ኢትዮጵያ)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Profile</CardTitle>
+                    <CardDescription>
+                      This is how your profile appears to others.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <UserAvatar
+                        src={user?.photoURL}
+                        fallbackInitials={userProfile.name.charAt(0) || "D"}
+                        size="lg"
+                      />
+                      <Button variant="outline">Upload New Picture</Button>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          value={userProfile.name}
+                          onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input id="email" type="email" value={userProfile.email} disabled />
+                    </div>
+                    <Button>Save Profile</Button>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>
+                      Customize the look and feel of the application.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="theme">Theme</Label>
+                      <Select value={theme} onValueChange={setTheme}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="system">System Default</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Note: Live theme toggling is in the header. This sets the default.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language</Label>
+                       <Select defaultValue="en-us">
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en-us">English (United States)</SelectItem>
+                          <SelectItem value="es-es">Español (España)</SelectItem>
+                          <SelectItem value="fr-fr">Français (France)</SelectItem>
+                          <SelectItem value="am-et">አማርኛ (ኢትዮጵያ)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+            </div>
           </TabsContent>
 
           {/* AI Configuration Tab */}

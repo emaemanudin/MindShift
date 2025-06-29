@@ -92,7 +92,7 @@ export default function DashboardPage() {
         {/* Header Section from prototype (Welcome message) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-muted-foreground">
               Welcome back, {userName}! Explore your study materials.
             </p>
@@ -125,14 +125,6 @@ export default function DashboardPage() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-2xl font-semibold text-foreground">Your Courses</h3>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" /> Filter
-              </Button>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Course
-              </Button>
-            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courses.map((courseItem) => {
