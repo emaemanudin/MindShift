@@ -25,6 +25,7 @@ import {
   PlusCircle,
   FileQuestion,
   Timer,
+  MessageCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,8 @@ export interface Assignment {
   // Quiz specific
   path?: string;
   timeLimitMinutes?: number;
+  grade?: number; // 0-100
+  feedback?: string;
 }
 
 interface TimeTracking {
@@ -104,6 +107,34 @@ const initialAssignments: Assignment[] = [
     path: '/quiz/start',
     timeLimitMinutes: 15
   },
+   {
+    id: "7",
+    title: "History Midterm Quiz",
+    course: "World History",
+    dueDate: "2025-07-19",
+    status: "Submitted",
+    type: 'quiz',
+    icon: ClipboardCheck,
+    iconColorClass: "text-purple-500",
+    description: "Your submission is awaiting a grade from your teacher.",
+    path: '/quiz/start', // In a real app, this would link to a results summary
+    timeLimitMinutes: 20,
+  },
+  {
+    id: "8",
+    title: "JavaScript Fundamentals Quiz",
+    course: "Web Development",
+    dueDate: "2025-07-12",
+    status: "Graded",
+    type: 'quiz',
+    icon: CheckCircle,
+    iconColorClass: "text-green-500",
+    description: "Your quiz has been graded. See feedback below.",
+    path: '/quiz/start',
+    timeLimitMinutes: 10,
+    grade: 88,
+    feedback: "Great work on the fundamentals! Pay close attention to the difference between `let` and `const`."
+  },
   {
     id: "2",
     title: "History Essay: The Roman Empire",
@@ -132,34 +163,6 @@ const initialAssignments: Assignment[] = [
     iconColorClass: "text-green-500",
     description: "Experiment on light refraction and reflection.",
   },
-  {
-    id: "4",
-    title: "Group Presentation: AI Ethics",
-    course: "Computer Science Ethics",
-    dueDate: "2025-07-25",
-    type: 'assignment',
-    status: "Pending",
-    estimatedTimeHours: 5,
-    timeSpentHours: 0.5,
-    progress: calculateProgress(0.5, 5),
-    icon: Presentation,
-    iconColorClass: "text-orange-500",
-    description: "Prepare a 15-minute group presentation. My part: Introduction.",
-  },
-  {
-    id: "5",
-    title: "Coding Challenge: Sorting Algorithms",
-    course: "Data Structures",
-    dueDate: "2025-07-18",
-    type: 'assignment',
-    status: "Graded",
-    estimatedTimeHours: 2,
-    timeSpentHours: 1.75,
-    progress: 100, 
-    icon: ClipboardCheck,
-    iconColorClass: "text-teal-500",
-    description: "Implement and compare Bubble Sort, Merge Sort, and Quick Sort.",
-  },
 ];
 
 const mockTimeTracking: TimeTracking = {
@@ -181,7 +184,7 @@ interface AssignmentItemProps {
 }
 
 function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemProps) {
-  const { id, title, course, dueDate, status, icon: Icon, iconColorClass, description, type } = assignment;
+  const { id, title, course, dueDate, status, icon: Icon, iconColorClass, description, type, grade, feedback } = assignment;
   const { toast } = useToast();
 
   const getStatusBadgeClass = (currentStatus: Assignment["status"]): string => {
@@ -281,6 +284,19 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
             </div>
           </div>
         )}
+        {status === 'Graded' && grade !== undefined && (
+          <div className="!mt-4 p-3 bg-green-500/10 rounded-md border border-green-500/20">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-green-800 dark:text-green-300">Grade: {grade}%</h4>
+              </div>
+              {feedback && (
+                <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center"><MessageCircle className="h-3 w-3 mr-1.5"/>Teacher Feedback:</p>
+                    <p className="text-sm text-foreground italic">"{feedback}"</p>
+                </div>
+              )}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="border-t px-6 py-3">
         {type === 'assignment' ? (
@@ -306,12 +322,18 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
             </div>
         ) : (
             <div className="flex justify-end w-full">
-                <Link href={assignment.path || '#'} passHref>
-                    <Button>
-                        <PlayCircle className="mr-2 h-4 w-4"/>
-                        Start Quiz
+                {status === "Take Quiz" ? (
+                    <Link href={assignment.path || '#'} passHref>
+                        <Button>
+                            <PlayCircle className="mr-2 h-4 w-4"/>
+                            Start Quiz
+                        </Button>
+                    </Link>
+                ) : (
+                     <Button variant="outline" disabled>
+                        Quiz {status}
                     </Button>
-                </Link>
+                )}
             </div>
         )}
       </CardFooter>

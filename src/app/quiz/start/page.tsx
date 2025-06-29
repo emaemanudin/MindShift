@@ -7,6 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
@@ -65,6 +76,8 @@ export default function QuizStartPage() {
     const handleSubmit = useCallback(() => {
         setQuizState("results");
         setTimeLeft(0); // Stop timer
+        // In a real app, you would send answers to the backend here.
+        // For the demo, we change the status on the assignments page manually.
     }, []);
 
     // Timer Effect
@@ -193,7 +206,24 @@ export default function QuizStartPage() {
                             {currentQuestionIndex < quizData.questions.length - 1 ? (
                                 <Button onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>Next Question</Button>
                             ) : (
-                                <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">Submit Quiz</Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button className="bg-green-600 hover:bg-green-700">Submit Quiz</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you ready to submit?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            You will not be able to change your answers after submitting.
+                                            Your quiz will be sent to your teacher for review.
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Review Answers</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleSubmit}>Yes, Submit Now</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             )}
                         </div>
                     </CardContent>

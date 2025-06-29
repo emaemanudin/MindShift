@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { BookCheck, Check, Search, Filter } from "lucide-react";
+import { BookCheck, Check, Search, Filter, FileQuestion } from "lucide-react";
 
 // --- Data Interfaces ---
 interface Submission {
@@ -30,6 +30,7 @@ interface Assignment {
   title: string;
   course: string;
   dueDate: string;
+  type: 'assignment' | 'quiz';
   submissions: Submission[];
 }
 
@@ -38,6 +39,7 @@ const mockAssignments: Assignment[] = [
   {
     id: "assign1",
     title: "Web Dev Assignment 5",
+    type: "assignment",
     course: "Web Development",
     dueDate: "2025-07-15",
     submissions: [
@@ -48,8 +50,19 @@ const mockAssignments: Assignment[] = [
     ],
   },
   {
+    id: "assign_quiz_1",
+    title: "Chemistry Midterm Quiz",
+    type: "quiz",
+    course: "Chemistry Crew",
+    dueDate: "2025-07-22",
+    submissions: [
+      { studentId: "s_dev", studentName: "Developer", studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", studentAvatarAiHint: "profile lego", status: "Needs Grading", submittedOn: "2025-07-21T14:00:00Z", grade: 80 }
+    ]
+  },
+  {
     id: "assign2",
     title: "JS Project Proposal",
+    type: "assignment",
     course: "Advanced JavaScript",
     dueDate: "2025-07-20",
     submissions: [
@@ -60,6 +73,7 @@ const mockAssignments: Assignment[] = [
    {
     id: "assign3",
     title: "Database Systems Midterm",
+    type: "assignment",
     course: "Database Systems",
     dueDate: "2025-07-18",
     submissions: [
@@ -163,7 +177,10 @@ export default function TeacherAssignmentsPage() {
                             : "border-transparent hover:bg-accent/50"
                     )}
                   >
-                    <p className="font-semibold">{assign.title}</p>
+                    <div className="flex items-center gap-2">
+                        {assign.type === 'quiz' ? <FileQuestion className="h-4 w-4 text-primary" /> : <BookCheck className="h-4 w-4 text-primary"/>}
+                        <p className="font-semibold">{assign.title}</p>
+                    </div>
                     <p className="text-sm text-muted-foreground">{assign.course}</p>
                     <p className="text-xs text-muted-foreground mt-1">Due: {new Date(assign.dueDate + 'T00:00:00').toLocaleDateString()}</p>
                   </li>
