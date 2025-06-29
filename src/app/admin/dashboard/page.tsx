@@ -49,24 +49,24 @@ const overallStats: OverallStats = {
   totalStudents: 1250,
   activeTeachers: 78,
   departments: 6,
-  courses: 45,
+  courses: 50,
 };
 
 const departments: Department[] = [
-  { id: "dep1", name: "Computer Science", head: "Dr. Alan Turing", teachers: 15, students: 350, avgScore: 88, completionRate: 92 },
-  { id: "dep2", name: "Mathematics", head: "Dr. Ada Lovelace", teachers: 12, students: 280, avgScore: 85, completionRate: 88 },
-  { id: "dep3", name: "Physics", head: "Dr. Marie Curie", teachers: 10, students: 210, avgScore: 82, completionRate: 85 },
-  { id: "dep4", name: "History", head: "Dr. Herodotus", teachers: 8, students: 150, avgScore: 91, completionRate: 95 },
-  { id: "dep5", name: "Literature", head: "Dr. Maya Angelou", teachers: 13, students: 180, avgScore: 89, completionRate: 94 },
-  { id: "dep6", name: "Chemistry", head: "Dr. Rosalind Franklin", teachers: 11, students: 200, avgScore: 86, completionRate: 90 },
+  { id: "dep1", name: "Software Engineering", head: "Dr. Alan Turing", teachers: 15, students: 350, avgScore: 88, completionRate: 92 },
+  { id: "dep2", name: "Information Technology", head: "Dr. Grace Hopper", teachers: 12, students: 310, avgScore: 85, completionRate: 89 },
+  { id: "dep3", name: "Business Administration", head: "Dr. Peter Drucker", teachers: 10, students: 250, avgScore: 90, completionRate: 94 },
+  { id: "dep4", name: "Tourism & Hospitality", head: "Dr. E. M. Statler", teachers: 8, students: 180, avgScore: 87, completionRate: 91 },
+  { id: "dep5", name: "Digital Arts", head: "Dr. John Lasseter", teachers: 11, students: 220, avgScore: 92, completionRate: 96 },
+  { id: "dep6", name: "Mechanical Engineering", head: "Dr. James Watt", teachers: 9, students: 190, avgScore: 84, completionRate: 87 },
 ];
 
 const teachers: Teacher[] = [
-  { id: "t1", name: "Prof. John Doe", avatarUrl: "https://randomuser.me/api/portraits/men/34.jpg", avatarAiHint: "profile man", department: "Computer Science", coursesTaught: 3, studentEngagement: 95, avgStudentScore: 92, performanceTrend: 'up' },
-  { id: "t2", name: "Prof. Jane Smith", avatarUrl: "https://randomuser.me/api/portraits/women/45.jpg", avatarAiHint: "profile woman", department: "Mathematics", coursesTaught: 2, studentEngagement: 91, avgStudentScore: 88, performanceTrend: 'stable' },
-  { id: "t3", name: "Dr. Robert Brown", avatarUrl: "https://randomuser.me/api/portraits/men/36.jpg", avatarAiHint: "profile man", department: "Physics", coursesTaught: 4, studentEngagement: 88, avgStudentScore: 80, performanceTrend: 'down' },
-  { id: "t4", name: "Dr. Emily White", avatarUrl: "https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman", department: "History", coursesTaught: 2, studentEngagement: 98, avgStudentScore: 94, performanceTrend: 'up' },
-  { id: "t5", name: "Prof. Michael Green", avatarUrl: "https://randomuser.me/api/portraits/men/38.jpg", avatarAiHint: "profile man", department: "Literature", coursesTaught: 3, studentEngagement: 93, avgStudentScore: 90, performanceTrend: 'stable' },
+  { id: "t1", name: "Prof. John Doe", avatarUrl: "https://randomuser.me/api/portraits/men/34.jpg", avatarAiHint: "profile man", department: "Software Engineering", coursesTaught: 3, studentEngagement: 95, avgStudentScore: 92, performanceTrend: 'up' },
+  { id: "t2", name: "Prof. Jane Smith", avatarUrl: "https://randomuser.me/api/portraits/women/45.jpg", avatarAiHint: "profile woman", department: "Information Technology", coursesTaught: 2, studentEngagement: 91, avgStudentScore: 88, performanceTrend: 'stable' },
+  { id: "t3", name: "Dr. Robert Brown", avatarUrl: "https://randomuser.me/api/portraits/men/36.jpg", avatarAiHint: "profile man", department: "Mechanical Engineering", coursesTaught: 4, studentEngagement: 88, avgStudentScore: 80, performanceTrend: 'down' },
+  { id: "t4", name: "Dr. Emily White", avatarUrl: "https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman", department: "Digital Arts", coursesTaught: 2, studentEngagement: 98, avgStudentScore: 94, performanceTrend: 'up' },
+  { id: "t5", name: "Prof. Michael Green", avatarUrl: "https://randomuser.me/api/portraits/men/38.jpg", avatarAiHint: "profile man", department: "Business Administration", coursesTaught: 3, studentEngagement: 93, avgStudentScore: 90, performanceTrend: 'stable' },
 ];
 
 const platformEngagementData = [
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
               <ChartContainer config={departmentChartConfig} className="h-[300px] w-full">
                 <BarChart data={departments} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
                   <CartesianGrid vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} angle={-10} />
                   <YAxis />
                   <Tooltip content={<ChartTooltipContent />} />
                   <Legend content={<ChartLegendContent />} />
