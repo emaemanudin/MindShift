@@ -2,11 +2,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext } from "react";
 import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
-import { Loader2 } from "lucide-react";
+// Keep this import for the type, but no firebase logic
 
 interface AuthContextType {
   user: User | null;
@@ -15,29 +13,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// A mock user object to use when auth is disabled.
+// Using a 'type assertion' for complex Firebase properties we don't need.
+const mockUser = {
+  uid: "mock-developer-id",
+  email: "dev@mindshift.com",
+  displayName: "Developer",
+  photoURL: `https://randomuser.me/api/portraits/lego/1.jpg`,
+  emailVerified: true,
+  isAnonymous: false,
+} as User;
+
+
+// This is a mock AuthProvider to disable authentication for development.
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const value = {
+    user: mockUser, // Always provide a mock user
+    isLoading: false, // Never in loading state
+  };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
