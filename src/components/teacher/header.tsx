@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { School, LogOut, LayoutDashboard, BookCopy, ClipboardCheck } from "lucide-react";
+import { School, LogOut, LayoutDashboard, BookCopy, ClipboardCheck, FilePenLine } from "lucide-react";
 import { DarkModeToggle } from "../shared/dark-mode-toggle";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const navItems = [
     { href: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/teacher/courses", label: "Courses", icon: BookCopy },
     { href: "/teacher/assignments", label: "Assignments", icon: ClipboardCheck },
+    { href: "/teacher/quizzes", label: "Quizzes", icon: FilePenLine },
 ];
 
 export function TeacherHeader() {
