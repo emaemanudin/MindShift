@@ -45,6 +45,20 @@ export function CreateQuizForm() {
     }
   };
 
+  const handleAssignQuiz = () => {
+    if (!generatedQuiz) {
+        toast({ variant: "destructive", title: "Cannot Assign", description: "No quiz has been generated yet."});
+        return;
+    }
+    // In a real app, this would send the quiz data to the backend.
+    // For this demo, we'll simulate it with a toast message.
+    toast({
+        title: "Quiz Assigned!",
+        description: `"${generatedQuiz.quizTitle}" is now available. A sample quiz has been added to the student's assignment page for demonstration.`,
+        duration: 5000,
+    });
+  };
+
   const renderQuestionPreview = () => {
     if (!generatedQuiz) return null;
     
@@ -151,12 +165,12 @@ export function CreateQuizForm() {
                  </div>
                  <div className="space-y-2">
                     <Label htmlFor="timeLimit">Total Time Limit (minutes)</Label>
-                    <Input id="timeLimit" type="number" defaultValue={questionCount} />
+                    <Input id="timeLimit" type="number" defaultValue={questionCount * 1.5} />
                  </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
                  <Button variant="secondary">Save as Draft</Button>
-                 <Button>Assign Quiz</Button>
+                 <Button onClick={handleAssignQuiz} disabled={quizState !== 'generated'}>Assign Quiz</Button>
             </CardFooter>
         </Card>
         

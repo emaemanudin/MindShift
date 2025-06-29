@@ -3,6 +3,7 @@
 
 import type { ReactNode } from "react";
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +23,8 @@ import {
   PlayCircle,
   CheckCircle,
   PlusCircle,
+  FileQuestion,
+  Timer,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,13 +36,18 @@ export interface Assignment {
   title: string;
   course: string;
   dueDate: string;
-  status: "Pending" | "In Progress" | "Submitted" | "Graded" | "Completed";
-  estimatedTimeHours: number; 
-  timeSpentHours: number; 
-  progress: number; // 0-100
+  type: 'assignment' | 'quiz';
+  status: "Pending" | "In Progress" | "Submitted" | "Graded" | "Completed" | "Take Quiz";
   icon: LucideIcon;
   iconColorClass: string;
   description?: string;
+  // Assignment specific
+  estimatedTimeHours?: number; 
+  timeSpentHours?: number; 
+  progress?: number; // 0-100
+  // Quiz specific
+  path?: string;
+  timeLimitMinutes?: number;
 }
 
 interface TimeTracking {
@@ -74,6 +82,7 @@ const initialAssignments: Assignment[] = [
     title: "Calculus Problem Set 3",
     course: "Mathematics 101",
     dueDate: "2025-07-15",
+    type: 'assignment',
     status: "In Progress",
     estimatedTimeHours: 4,
     timeSpentHours: 1.5,
@@ -83,10 +92,24 @@ const initialAssignments: Assignment[] = [
     description: "Chapters 5-7, focusing on integration techniques.",
   },
   {
+    id: "6",
+    title: "Chemistry Midterm Quiz",
+    course: "Chemistry Crew",
+    dueDate: "2025-07-22",
+    status: "Take Quiz",
+    type: 'quiz',
+    icon: FileQuestion,
+    iconColorClass: "text-red-500",
+    description: "A timed quiz covering chapters 1-5. This is a secure assessment.",
+    path: '/quiz/start',
+    timeLimitMinutes: 15
+  },
+  {
     id: "2",
     title: "History Essay: The Roman Empire",
     course: "World History",
     dueDate: "2025-07-20",
+    type: 'assignment',
     status: "Pending",
     estimatedTimeHours: 6,
     timeSpentHours: 0,
@@ -100,6 +123,7 @@ const initialAssignments: Assignment[] = [
     title: "Physics Lab Report: Optics",
     course: "Physics 202",
     dueDate: "2025-07-10",
+    type: 'assignment',
     status: "Submitted",
     estimatedTimeHours: 3,
     timeSpentHours: 3,
@@ -113,6 +137,7 @@ const initialAssignments: Assignment[] = [
     title: "Group Presentation: AI Ethics",
     course: "Computer Science Ethics",
     dueDate: "2025-07-25",
+    type: 'assignment',
     status: "Pending",
     estimatedTimeHours: 5,
     timeSpentHours: 0.5,
@@ -126,6 +151,7 @@ const initialAssignments: Assignment[] = [
     title: "Coding Challenge: Sorting Algorithms",
     course: "Data Structures",
     dueDate: "2025-07-18",
+    type: 'assignment',
     status: "Graded",
     estimatedTimeHours: 2,
     timeSpentHours: 1.75,
@@ -155,7 +181,7 @@ interface AssignmentItemProps {
 }
 
 function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemProps) {
-  const { id, title, course, dueDate, status, estimatedTimeHours, timeSpentHours, progress, icon: Icon, iconColorClass, description } = assignment;
+  const { id, title, course, dueDate, status, icon: Icon, iconColorClass, description, type } = assignment;
   const { toast } = useToast();
 
   const getStatusBadgeClass = (currentStatus: Assignment["status"]): string => {
@@ -169,6 +195,8 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
         return "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30";
       case "Graded":
         return "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30";
+      case "Take Quiz":
+        return "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30";
       default:
         return "";
     }
@@ -192,8 +220,7 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
         return;
     }
     onSetStatus(id, "Completed");
-    // Ensure progress is 100% and time spent matches estimated time if not already more
-    onLogTime(id, Math.max(0, estimatedTimeHours - timeSpentHours)); 
+    onLogTime(id, Math.max(0, (assignment.estimatedTimeHours || 0) - (assignment.timeSpentHours || 0))); 
     toast({ title: "Task Completed", description: `"${title}" marked as completed.`, variant: "default"});
   };
   
@@ -225,42 +252,68 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <CalendarDays className="h-4 w-4 mr-1.5" />
-            <span>Due: {new Date(dueDate + 'T00:00:00').toLocaleDateString()}</span>
+        {type === 'assignment' ? (
+          <>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <CalendarDays className="h-4 w-4 mr-1.5" />
+                <span>Due: {new Date(dueDate + 'T00:00:00').toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1.5" />
+                <span>{formatHoursToTime(assignment.timeSpentHours || 0)} / {formatHoursToTime(assignment.estimatedTimeHours || 0)}</span>
+              </div>
+            </div>
+            <div>
+              <Progress value={assignment.progress || 0} className="h-2" />
+              <p className="text-xs text-muted-foreground mt-1 text-right">{assignment.progress || 0}% complete</p>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center">
+              <CalendarDays className="h-4 w-4 mr-1.5" />
+              <span>Due: {new Date(dueDate + 'T00:00:00').toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center">
+              <Timer className="h-4 w-4 mr-1.5" />
+              <span>{assignment.timeLimitMinutes} min limit</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-1.5" />
-            <span>{formatHoursToTime(timeSpentHours)} / {formatHoursToTime(estimatedTimeHours)}</span>
-          </div>
-        </div>
-        <div>
-          <Progress value={progress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1 text-right">{progress}% complete</p>
-        </div>
+        )}
       </CardContent>
       <CardFooter className="border-t px-6 py-3">
-        <div className="flex justify-end gap-2 w-full">
-           {status === "Pending" && (
-            <Button variant="ghost" size="sm" onClick={handleStartTaskClick} className="text-xs">
-              <PlayCircle className="mr-1.5 h-4 w-4" /> Start Task
-            </Button>
-          )}
-          {(status === "Pending" || status === "In Progress") && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleLogTimeClick} className="text-xs">
-                <PlusCircle className="mr-1.5 h-4 w-4" /> Log 30m
-              </Button>
-              <Button variant="default" size="sm" onClick={handleCompleteClick} className="text-xs">
-                <CheckCircle className="mr-1.5 h-4 w-4" /> Complete
-              </Button>
-            </>
-          )}
-           {(status === "Completed" || status === "Submitted" || status === "Graded") && (
-             <p className="text-xs text-muted-foreground">No further actions.</p>
-           )}
-        </div>
+        {type === 'assignment' ? (
+            <div className="flex justify-end gap-2 w-full">
+              {status === "Pending" && (
+                <Button variant="ghost" size="sm" onClick={handleStartTaskClick} className="text-xs">
+                  <PlayCircle className="mr-1.5 h-4 w-4" /> Start Task
+                </Button>
+              )}
+              {(status === "Pending" || status === "In Progress") && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleLogTimeClick} className="text-xs">
+                    <PlusCircle className="mr-1.5 h-4 w-4" /> Log 30m
+                  </Button>
+                  <Button variant="default" size="sm" onClick={handleCompleteClick} className="text-xs">
+                    <CheckCircle className="mr-1.5 h-4 w-4" /> Complete
+                  </Button>
+                </>
+              )}
+              {(status === "Completed" || status === "Submitted" || status === "Graded") && (
+                <p className="text-xs text-muted-foreground">No further actions.</p>
+              )}
+            </div>
+        ) : (
+            <div className="flex justify-end w-full">
+                <Link href={assignment.path || '#'} passHref>
+                    <Button>
+                        <PlayCircle className="mr-2 h-4 w-4"/>
+                        Start Quiz
+                    </Button>
+                </Link>
+            </div>
+        )}
       </CardFooter>
     </Card>
   );
@@ -337,11 +390,11 @@ export default function AssignmentsPage() {
     setAssignments(prevAssignments =>
       prevAssignments.map(asm => {
         if (asm.id === id) {
-          const newTimeSpentHours = Math.min(asm.timeSpentHours + timeHoursToAdd, asm.estimatedTimeHours * 2); // Cap at 2x estimated
+          const newTimeSpentHours = Math.min((asm.timeSpentHours || 0) + timeHoursToAdd, (asm.estimatedTimeHours || 0) * 2); // Cap at 2x estimated
           return {
             ...asm,
             timeSpentHours: newTimeSpentHours,
-            progress: calculateProgress(newTimeSpentHours, asm.estimatedTimeHours),
+            progress: calculateProgress(newTimeSpentHours, asm.estimatedTimeHours || 0),
           };
         }
         return asm;
@@ -357,7 +410,7 @@ export default function AssignmentsPage() {
           if (newStatus === "Completed" || newStatus === "Submitted" || newStatus === "Graded") {
             updatedAssignment.progress = 100;
             // Optionally adjust timeSpentHours to estimatedTimeHours if not already met or exceeded
-            if (updatedAssignment.timeSpentHours < updatedAssignment.estimatedTimeHours) {
+            if (updatedAssignment.timeSpentHours && updatedAssignment.estimatedTimeHours && updatedAssignment.timeSpentHours < updatedAssignment.estimatedTimeHours) {
               updatedAssignment.timeSpentHours = updatedAssignment.estimatedTimeHours;
             }
           }
@@ -395,7 +448,7 @@ export default function AssignmentsPage() {
         <section aria-labelledby="assignments-heading">
           <h2 id="assignments-heading" className="text-2xl font-semibold text-foreground mb-4 flex items-center">
             <CalendarDays className="mr-2 h-6 w-6 text-primary" />
-            Upcoming Assignments
+            Your Tasks & Quizzes
           </h2>
           {assignments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
