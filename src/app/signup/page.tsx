@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signUpWithEmailAndPassword } from "@/lib/firebase/auth";
-// import { useAuth } from "@/components/auth/auth-provider"; // Commented out useAuth
+import { useAuth } from "@/components/auth/auth-provider";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -39,13 +39,13 @@ export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const { user, isLoading: isAuthLoading } = useAuth(); // Commented out useAuth related state
+  const { user, isLoading: isAuthLoading } = useAuth();
 
-  // useEffect(() => { // Commented out redirect logic
-  //   if (!isAuthLoading && user) {
-  //     router.push("/");
-  //   }
-  // }, [user, isAuthLoading, router]);
+  useEffect(() => {
+    if (!isAuthLoading && user) {
+      router.push("/");
+    }
+  }, [user, isAuthLoading, router]);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -86,13 +86,13 @@ export default function SignUpPage() {
     }
   };
 
-  // if (isAuthLoading || (!isAuthLoading && user)) { // Commented out loading state
-  //   return (
-  //     <div className="flex items-center justify-center min-h-screen bg-background">
-  //       <Loader2 className="h-12 w-12 animate-spin text-primary" />
-  //     </div>
-  //   );
-  // }
+  if (isAuthLoading || (!isAuthLoading && user)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
