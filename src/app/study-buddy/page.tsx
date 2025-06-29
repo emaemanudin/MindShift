@@ -84,8 +84,24 @@ export default function StudyBuddyPage() {
         };
         
         recognition.onerror = (event) => {
+          let errorMessage = `An unknown error occurred: ${event.error}`;
+          switch (event.error) {
+            case 'network':
+              errorMessage = 'A network error occurred. Please check your internet connection.';
+              break;
+            case 'not-allowed':
+            case 'service-not-allowed':
+              errorMessage = 'Microphone access denied. Please enable microphone permissions in your browser settings.';
+              break;
+            case 'no-speech':
+              errorMessage = 'No speech was detected. Please try again.';
+              break;
+            case 'audio-capture':
+                errorMessage = 'Failed to capture audio. Please ensure your microphone is working correctly.';
+                break;
+          }
           console.error('Speech recognition error:', event.error);
-          toast({ variant: "destructive", title: "Voice Error", description: `Speech recognition failed: ${event.error}` });
+          toast({ variant: "destructive", title: "Voice Error", description: errorMessage });
           setIsListening(false);
         };
         
@@ -125,7 +141,19 @@ export default function StudyBuddyPage() {
   const playAudio = (audioDataUri: string) => {
     if (audioRef.current) {
         audioRef.current.src = audioDataUri;
-        audioRef.current.play().catch(e => console.error("Audio playback error:", e));
+        const playPromise = audioRef.current.play();
+
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error("Audio playback error:", error);
+                // Inform user they might need to interact first if autoplay is blocked
+                toast({
+                    title: "Audio Playback Blocked",
+                    description: "Your browser may require you to click 'Read Aloud' to play audio.",
+                    variant: "default",
+                });
+            });
+        }
     }
   }
 
@@ -345,3 +373,5 @@ export default function StudyBuddyPage() {
     </AppLayout>
   );
 }
+
+    
