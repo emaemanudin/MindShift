@@ -36,7 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/courses", label: "My Courses", icon: BookOpen },
   { href: "/schedule", label: "Schedule", icon: CalendarDays },
   { href: "/assignments", label: "Assignments", icon: ListChecks, badge: "3" },
@@ -65,7 +65,7 @@ export function AppSidebarContent() {
         title: "Logged Out",
         description: "You have been successfully logged out.",
       });
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
       toast({
@@ -79,7 +79,7 @@ export function AppSidebarContent() {
   return (
     <>
       <SidebarHeader className="p-4 gradient-bg-sidebar text-primary-foreground">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <GraduationCap className="h-8 w-8" />
           <h1 className="text-2xl font-bold">MindShift</h1>
         </Link>
@@ -117,7 +117,7 @@ export function AppSidebarContent() {
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
+                isActive={pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
                 disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")}
