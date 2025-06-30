@@ -13,18 +13,22 @@ const teamMembers = [
 
 export default function TeamPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">
       <LandingHeader />
       <main className="flex-1 container mx-auto px-4 py-24 sm:py-32">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Meet the Innovators</h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
             A passionate team of educators, engineers, and designers dedicated to building the future of learning.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.map(member => (
-            <Card key={member.name} className="text-center pt-6">
+          {teamMembers.map((member, index) => (
+            <Card 
+              key={member.name} 
+              className="text-center pt-6 transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl animate-in fade-in zoom-in-95"
+              style={{ animationDelay: `${200 + index * 100}ms`, animationFillMode: 'backwards' }}
+            >
               <CardContent className="flex flex-col items-center">
                 <UserAvatar src={member.avatarUrl} fallbackInitials={member.name.charAt(0)} size="lg" className="h-24 w-24 mb-4" aiHint={member.avatarAiHint} />
                 <h3 className="text-lg font-semibold">{member.name}</h3>
