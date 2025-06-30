@@ -20,8 +20,10 @@ export interface Course {
   rating?: number;
   icon?: LucideIcon; // Icon component type in data
   iconBgColor?: string;
-  image?: string;
-  imageAiHint?: string;
+  coverImage?: {
+    url: string;
+    aiHint: string;
+  };
 }
 
 // Props for the CourseCard component
@@ -32,13 +34,13 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ courseData, iconElement, iconBgColor }: CourseCardProps) {
-  const { id, title, description, status, progress, lessons, duration, rating, image, imageAiHint } = courseData;
+  const { id, title, description, status, progress, lessons, duration, rating, coverImage } = courseData;
 
   return (
     <Card className="shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className={cn("h-40 flex items-center justify-center relative", iconBgColor || "bg-primary/10")}>
-        {image ? (
-            <Image src={image} alt={title} layout="fill" objectFit="cover" data-ai-hint={imageAiHint} />
+        {coverImage ? (
+            <Image src={coverImage.url} alt={title} layout="fill" objectFit="cover" data-ai-hint={coverImage.aiHint} />
         ) : iconElement ? (
             iconElement
         ) : (

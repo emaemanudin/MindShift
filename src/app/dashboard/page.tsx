@@ -1,3 +1,4 @@
+
 "use client"; // Required because we use hooks (even if auth is removed, others might be used)
 
 import { AppLayout } from "@/components/layout/app-layout";
@@ -46,9 +47,9 @@ const stats = [
 ];
 
 const courses: Course[] = [
-  { id: "1", title: "Web Development", description: "Learn modern web development with HTML, CSS, and JavaScript.", status: "Active", progress: 65, lessons: 12, duration: "8h 30m", rating: 4.8, icon: Laptop, iconBgColor: "bg-blue-500/10", image: "https://placehold.co/600x400.png", imageAiHint: "coding laptop" },
-  { id: "2", title: "Database Systems", description: "Master SQL and database design principles.", status: "Active", progress: 80, lessons: 8, duration: "6h 15m", rating: 4.6, icon: Database, iconBgColor: "bg-purple-500/10", image: "https://placehold.co/600x400.png", imageAiHint: "database server" },
-  { id: "3", title: "Machine Learning", description: "Introduction to AI and machine learning algorithms.", status: "Active", progress: 45, lessons: 5, duration: "4h 20m", rating: 4.9, icon: BrainCircuit, iconBgColor: "bg-green-500/10", image: "https://placehold.co/600x400.png", imageAiHint: "robot ai" },
+  { id: "1", title: "Web Development", description: "Learn modern web development with HTML, CSS, and JavaScript.", status: "Active", progress: 65, lessons: 12, duration: "8h 30m", rating: 4.8, icon: Laptop, iconBgColor: "bg-blue-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "coding laptop" } },
+  { id: "2", title: "Database Systems", description: "Master SQL and database design principles.", status: "Active", progress: 80, lessons: 8, duration: "6h 15m", rating: 4.6, icon: Database, iconBgColor: "bg-purple-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "database server" } },
+  { id: "3", title: "Machine Learning", description: "Introduction to AI and machine learning algorithms.", status: "Active", progress: 45, lessons: 5, duration: "4h 20m", rating: 4.9, icon: BrainCircuit, iconBgColor: "bg-green-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "robot ai" } },
 ];
 
 const tasks: Task[] = [
@@ -90,7 +91,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         {/* Header Section from prototype (Welcome message) */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-foreground">Students' Work Specs</h1>
           <p className="text-muted-foreground">
             Welcome back, {userName}! Here's a snapshot of your learning journey.
           </p>
