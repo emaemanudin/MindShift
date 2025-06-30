@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const mockUser = {
   uid: "mock-developer-id",
   email: "dev@mindshift.com",
-  displayName: "Developer",
+  displayName: "Dev User",
   photoURL: `https://randomuser.me/api/portraits/lego/1.jpg`,
   emailVerified: true,
   isAnonymous: false,

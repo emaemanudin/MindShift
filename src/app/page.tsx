@@ -92,7 +92,7 @@ export default function DashboardPage() {
         {/* Header Section from prototype (Welcome message) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground">Students' Work Specs</h1>
             <p className="text-muted-foreground">
               Welcome back, {userName}! Explore your study materials.
             </p>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
           <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Upcoming Tasks</CardTitle>
-              <Button variant="link" size="sm" className="text-primary">View All</Button>
+              
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {tasks.map((task) => {
@@ -168,7 +168,7 @@ export default function DashboardPage() {
           <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Study Groups</CardTitle>
-              <Button variant="link" size="sm" className="text-primary">View All</Button>
+              
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {studyGroups.map((group) => {
@@ -190,7 +190,7 @@ export default function DashboardPage() {
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
-            <Button variant="link" size="sm" className="text-primary">View All</Button>
+            
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             {recentActivities.map((activity) => {
