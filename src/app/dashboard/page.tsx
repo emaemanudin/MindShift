@@ -47,9 +47,9 @@ const stats = [
 ];
 
 const courses: Course[] = [
-  { id: "1", title: "Web Development", description: "Learn modern web development with HTML, CSS, and JavaScript.", status: "Active", progress: 65, lessons: 12, duration: "8h 30m", rating: 4.8, icon: Laptop, iconBgColor: "bg-blue-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "coding laptop" } },
-  { id: "2", title: "Database Systems", description: "Master SQL and database design principles.", status: "Active", progress: 80, lessons: 8, duration: "6h 15m", rating: 4.6, icon: Database, iconBgColor: "bg-purple-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "database server" } },
-  { id: "3", title: "Machine Learning", description: "Introduction to AI and machine learning algorithms.", status: "Active", progress: 45, lessons: 5, duration: "4h 20m", rating: 4.9, icon: BrainCircuit, iconBgColor: "bg-green-500/10", coverImage: { url: "https://placehold.co/600x400.png", aiHint: "robot ai" } },
+  { id: "1", title: "Web Development", description: "Learn modern web development with HTML, CSS, and JavaScript.", status: "Active", progress: 65, lessons: 12, duration: "8h 30m", rating: 4.8, icon: Laptop, iconBgColor: "bg-blue-500/10", coverImage: { url: "/my_course_image/web_development.png", aiHint: "coding laptop" } },
+  { id: "2", title: "Database Systems", description: "Master SQL and database design principles.", status: "Active", progress: 80, lessons: 8, duration: "6h 15m", rating: 4.6, icon: Database, iconBgColor: "bg-purple-500/10", coverImage: { url: "/my_course_image/database_systems.png", aiHint: "database server" } },
+  { id: "3", title: "Machine Learning", description: "Introduction to AI and machine learning algorithms.", status: "Active", progress: 45, lessons: 5, duration: "4h 20m", rating: 4.9, icon: BrainCircuit, iconBgColor: "bg-green-500/10", coverImage: { url: "/my_course_image/machine_learning.png", aiHint: "robot ai" } },
 ];
 
 const tasks: Task[] = [
@@ -59,9 +59,9 @@ const tasks: Task[] = [
 ];
 
 const studyGroups: StudyGroup[] = [
-  { id: "1", name: "Web Dev Study Group", description: "Next meeting: Tomorrow, 3 PM", icon: Users, iconBgClass: "bg-purple-500/10", iconColorClass: "text-purple-500", members: [{id:"m1", name:"Jane", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile woman"}, {id:"m2", name:"John", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile man"}, {id:"m3", name:"Alice", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile woman"}] },
-  { id: "2", name: "Database Team", description: "Working on final project", icon: Users, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", members: [{id:"m4", name:"Bob", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile man"}, {id:"m5", name:"Charlie", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile woman"}] },
-  { id: "3", name: "AI Research Club", description: "Monthly meeting: Friday, 4 PM", icon: Users, iconBgClass: "bg-green-500/10", iconColorClass: "text-green-500", members: [{id:"m6", name:"Dave", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile man"}, {id:"m7", name:"Eve", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile woman"}, {id:"m8", name:"Frank", avatarUrl:"https://placehold.co/32x32.png", avatarAiHint: "profile man"}] },
+  { id: "1", name: "Web Dev Study Group", description: "Next meeting: Tomorrow, 3 PM", icon: Users, iconBgClass: "bg-purple-500/10", iconColorClass: "text-purple-500", members: [{id:"m1", name:"Jane", avatarUrl:"https://randomuser.me/api/portraits/women/44.jpg", avatarAiHint: "profile woman"}, {id:"m2", name:"John", avatarUrl:"https://randomuser.me/api/portraits/men/46.jpg", avatarAiHint: "profile man"}, {id:"m3", name:"Alice", avatarUrl:"https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman"}] },
+  { id: "2", name: "Database Team", description: "Working on final project", icon: Users, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", members: [{id:"m4", name:"Bob", avatarUrl:"https://randomuser.me/api/portraits/men/75.jpg", avatarAiHint: "profile man"}, {id:"m5", name:"Charlie", avatarUrl:"https://randomuser.me/api/portraits/men/77.jpg", avatarAiHint: "profile man"}] },
+  { id: "3", name: "AI Research Club", description: "Monthly meeting: Friday, 4 PM", icon: Users, iconBgClass: "bg-green-500/10", iconColorClass: "text-green-500", members: [{id:"m6", name:"Dave", avatarUrl:"https://randomuser.me/api/portraits/men/78.jpg", avatarAiHint: "profile man"}, {id:"m7", name:"Eve", avatarUrl:"https://randomuser.me/api/portraits/women/79.jpg", avatarAiHint: "profile woman"}, {id:"m8", name:"Frank", avatarUrl:"https://randomuser.me/api/portraits/men/80.jpg", avatarAiHint: "profile man"}] },
 ];
 
 const recentActivities: Activity[] = [

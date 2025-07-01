@@ -1,8 +1,10 @@
+
 "use client";
 
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
   src?: string | null;
@@ -28,19 +30,8 @@ export function UserAvatar({
   };
 
   return (
-    <Avatar className={`${sizeClasses[size]} ${className}`}>
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          width={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
-          height={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
-          className="object-cover"
-          data-ai-hint={aiHint}
-        />
-      ) : (
-         <AvatarImage src={src || undefined} alt={alt} data-ai-hint={aiHint} />
-      )}
+    <Avatar className={cn(sizeClasses[size], className)}>
+      <AvatarImage src={src || undefined} alt={alt} data-ai-hint={aiHint} />
       <AvatarFallback className={sizeClasses[size]}>
         {fallbackInitials ? fallbackInitials : <User className="h-1/2 w-1/2" />}
       </AvatarFallback>

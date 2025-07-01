@@ -3,12 +3,10 @@
 
 import * as React from 'react';
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -17,6 +15,7 @@ import type { LucideIcon } from "lucide-react";
 import { Users, MessageSquare, SendHorizonal, PlusCircle, Briefcase, FlaskConical, Code2, UserCircle2, CheckCircle, Info, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { studyGroupAssistant } from '@/ai/flows/study-group-assistant';
+import { UserAvatar } from '@/components/shared/user-avatar';
 
 // Data types
 interface DemoUser {
@@ -109,18 +108,13 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
 
   return (
     <div className={cn("flex items-start gap-3 p-3 rounded-lg", isOwnMessage ? "flex-row-reverse" : "flex-row")}>
-      <Avatar className="h-8 w-8 border">
-        {isAI ? (
-            <div className="flex items-center justify-center h-full w-full bg-primary/20 rounded-full">
-                <Bot className="h-5 w-5 text-primary" />
-            </div>
-        ) : (
-          <>
-            <Image src={userAvatarUrl} alt={userName} width={32} height={32} data-ai-hint={userAvatarAiHint || 'profile generic'} />
-            <AvatarFallback>{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </>
-        )}
-      </Avatar>
+      {isAI ? (
+          <div className="flex items-center justify-center h-8 w-8 bg-primary/20 rounded-full border">
+              <Bot className="h-5 w-5 text-primary" />
+          </div>
+      ) : (
+        <UserAvatar src={userAvatarUrl} alt={userName} size="sm" fallbackInitials={userName.substring(0, 2).toUpperCase()} aiHint={userAvatarAiHint} />
+      )}
       <div className={cn("flex flex-col max-w-[70%]", isOwnMessage ? "items-end" : "items-start")}>
         <div className={cn("p-3 rounded-xl", 
             isOwnMessage ? "bg-primary text-primary-foreground" : 
@@ -381,10 +375,7 @@ export default function StudyGroupsPage() {
                      <div className="flex items-center justify-between">
                         <div className="flex -space-x-1 items-center">
                             {group.members.filter(m => m.id !== aiAssistantUser.id).slice(0,3).map(member => (
-                                <Avatar key={member.id} className="h-5 w-5 border-2 border-background">
-                                  <Image src={member.avatarUrl} alt={member.name} width={20} height={20} data-ai-hint={member.avatarAiHint || 'profile generic'}/>
-                                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                <UserAvatar key={member.id} src={member.avatarUrl} alt={member.name} fallbackInitials={member.name.charAt(0)} aiHint={member.avatarAiHint} className="h-5 w-5 border-2 border-background" />
                             ))}
                             {group.members.filter(m => m.id !== aiAssistantUser.id).length > 3 && <span className="text-xs text-muted-foreground ml-1.5 pl-1 pt-0.5">+{group.members.length-3}</span>}
                         </div>
@@ -411,10 +402,7 @@ export default function StudyGroupsPage() {
                     </div>
                     <div className="flex items-center">
                         <p className="text-sm text-muted-foreground mr-2">Teacher: {selectedGroup.teacher.name}</p>
-                        <Avatar className="h-7 w-7 border">
-                           <Image src={selectedGroup.teacher.avatarUrl} alt={selectedGroup.teacher.name} width={28} height={28} data-ai-hint={selectedGroup.teacher.avatarAiHint || 'profile teacher'} />
-                           <AvatarFallback>{selectedGroup.teacher.name.substring(0,1)}</AvatarFallback>
-                        </Avatar>
+                        <UserAvatar src={selectedGroup.teacher.avatarUrl} alt={selectedGroup.teacher.name} fallbackInitials={selectedGroup.teacher.name.substring(0,1)} aiHint={selectedGroup.teacher.avatarAiHint} className="h-7 w-7" />
                     </div>
                 </div>
                 <CardDescription className="mt-1">

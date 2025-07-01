@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -12,12 +13,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'randomuser.me',
         port: '',
         pathname: '/api/portraits/**',
@@ -27,5 +22,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-    

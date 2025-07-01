@@ -40,7 +40,7 @@ export function CourseCard({ courseData, iconElement, iconBgColor }: CourseCardP
     <Card className="shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className={cn("h-40 flex items-center justify-center relative", iconBgColor || "bg-primary/10")}>
         {coverImage ? (
-            <Image src={coverImage.url} alt={title} layout="fill" objectFit="cover" data-ai-hint={coverImage.aiHint} />
+            <Image src={coverImage.url} alt={title} fill style={{ objectFit: 'cover' }} data-ai-hint={coverImage.aiHint} />
         ) : iconElement ? (
             iconElement
         ) : (
