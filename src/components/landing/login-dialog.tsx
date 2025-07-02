@@ -34,10 +34,24 @@ export function LoginDialog({ children }: LoginDialogProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    // This form is now designated for student login.
-    if (email === 'dev@mindshift.com' && password === 'dev') {
+    // Unified login for all roles
+    if (email === 'admin@admin.com' && password === 'admin') {
       toast({
-        title: "Login Successful",
+        title: "Admin Login Successful",
+        description: "Redirecting to the Admin Dashboard...",
+      });
+      login('admin');
+      router.push('/admin/dashboard');
+    } else if (email === 'teacher@teacher.com' && password === 'teacher') {
+      toast({
+        title: "Teacher Login Successful",
+        description: "Redirecting to the Teacher Dashboard...",
+      });
+      login('teacher');
+      router.push('/teacher/dashboard');
+    } else if (email === 'dev@mindshift.com' && password === 'dev') {
+      toast({
+        title: "Student Login Successful",
         description: "Redirecting to your dashboard...",
       });
       login('student');
@@ -46,7 +60,7 @@ export function LoginDialog({ children }: LoginDialogProps) {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Invalid credentials. Use dev@mindshift.com and dev.",
+        description: "Invalid credentials. Please check your email and password.",
       });
       setIsLoading(false);
     }
@@ -71,7 +85,7 @@ export function LoginDialog({ children }: LoginDialogProps) {
             <Input
               id="email-login"
               type="email"
-              placeholder="dev@mindshift.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -92,9 +106,12 @@ export function LoginDialog({ children }: LoginDialogProps) {
             {isLoading ? "Signing In..." : "Login"}
           </Button>
         </form>
-        <p className="text-center text-xs text-muted-foreground mt-2">
-          For demo: use <strong>dev@mindshift.com</strong> and password <strong>dev</strong>.
-        </p>
+        <div className="text-center text-xs text-muted-foreground mt-2 px-4 leading-relaxed">
+          <p><strong>Demo Users:</strong></p>
+          <p>Student: <strong>dev@mindshift.com</strong> (pw: dev)</p>
+          <p>Teacher: <strong>teacher@teacher.com</strong> (pw: teacher)</p>
+          <p>Admin: <strong>admin@admin.com</strong> (pw: admin)</p>
+        </div>
       </DialogContent>
     </Dialog>
   );
