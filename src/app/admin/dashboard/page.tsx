@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { Users, BookOpen, Building, BarChart2, LineChartIcon, Activity, Star, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, BookOpen, Building, UserPlus, Trash2, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ChartConfig } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 // --- Data Interfaces ---
 interface OverallStats {
@@ -44,6 +45,16 @@ interface Teacher {
   performanceTrend: 'up' | 'down' | 'stable';
 }
 
+interface PlatformUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Student' | 'Teacher' | 'Admin';
+  avatarUrl: string;
+  avatarAiHint: string;
+  status: 'Active' | 'Suspended';
+}
+
 // --- Mock Data ---
 const overallStats: OverallStats = {
   totalStudents: 1250,
@@ -56,17 +67,20 @@ const departments: Department[] = [
   { id: "dep1", name: "Software Engineering", head: "Dr. Alan Turing", teachers: 15, students: 350, avgScore: 88, completionRate: 92 },
   { id: "dep2", name: "Information Technology", head: "Dr. Grace Hopper", teachers: 12, students: 310, avgScore: 85, completionRate: 89 },
   { id: "dep3", name: "Business Administration", head: "Dr. Peter Drucker", teachers: 10, students: 250, avgScore: 90, completionRate: 94 },
-  { id: "dep4", name: "Tourism & Hospitality", head: "Dr. E. M. Statler", teachers: 8, students: 180, avgScore: 87, completionRate: 91 },
-  { id: "dep5", name: "Digital Arts", head: "Dr. John Lasseter", teachers: 11, students: 220, avgScore: 92, completionRate: 96 },
-  { id: "dep6", name: "Mechanical Engineering", head: "Dr. James Watt", teachers: 9, students: 190, avgScore: 84, completionRate: 87 },
 ];
 
 const teachers: Teacher[] = [
   { id: "t1", name: "Prof. John Doe", avatarUrl: "https://randomuser.me/api/portraits/men/34.jpg", avatarAiHint: "profile man", department: "Software Engineering", coursesTaught: 3, studentEngagement: 95, avgStudentScore: 92, performanceTrend: 'up' },
   { id: "t2", name: "Prof. Jane Smith", avatarUrl: "https://randomuser.me/api/portraits/women/45.jpg", avatarAiHint: "profile woman", department: "Information Technology", coursesTaught: 2, studentEngagement: 91, avgStudentScore: 88, performanceTrend: 'stable' },
   { id: "t3", name: "Dr. Robert Brown", avatarUrl: "https://randomuser.me/api/portraits/men/36.jpg", avatarAiHint: "profile man", department: "Mechanical Engineering", coursesTaught: 4, studentEngagement: 88, avgStudentScore: 80, performanceTrend: 'down' },
-  { id: "t4", name: "Dr. Emily White", avatarUrl: "https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman", department: "Digital Arts", coursesTaught: 2, studentEngagement: 98, avgStudentScore: 94, performanceTrend: 'up' },
-  { id: "t5", name: "Prof. Michael Green", avatarUrl: "https://randomuser.me/api/portraits/men/38.jpg", avatarAiHint: "profile man", department: "Business Administration", coursesTaught: 3, studentEngagement: 93, avgStudentScore: 90, performanceTrend: 'stable' },
+];
+
+const platformUsers: PlatformUser[] = [
+    { id: "u1", name: "Dev User", email: "dev@mindshift.com", role: 'Student', avatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", avatarAiHint: 'lego profile', status: 'Active' },
+    { id: "u2", name: "Dr. Emily Carter", email: "teacher@teacher.com", role: 'Teacher', avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg", avatarAiHint: 'teacher profile', status: 'Active' },
+    { id: "u3", name: "Platform Admin", email: "admin@admin.com", role: 'Admin', avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg", avatarAiHint: 'admin profile', status: 'Active' },
+    { id: "u4", name: "Alex Johnson", email: "alex.j@example.com", role: 'Student', avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg", avatarAiHint: 'student profile', status: 'Active' },
+    { id: "u5", name: "Priya Patel", email: "priya.p@example.com", role: 'Student', avatarUrl: "https://randomuser.me/api/portraits/women/78.jpg", avatarAiHint: 'student profile', status: 'Suspended' },
 ];
 
 const platformEngagementData = [
@@ -117,7 +131,7 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">High-level overview of the MindShift platform.</p>
+          <p className="text-muted-foreground">High-level overview and management of the MindShift platform.</p>
         </div>
 
         {/* Stats Cards */}
@@ -127,6 +141,56 @@ export default function AdminDashboardPage() {
           <StatsCard title="Departments" value={overallStats.departments} icon={Building} />
           <StatsCard title="Total Courses" value={overallStats.courses} icon={BookOpen} />
         </div>
+
+        {/* User Management Section */}
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Register new users or remove existing ones.</CardDescription>
+              </div>
+              <Button><UserPlus className="mr-2 h-4 w-4" /> Register New User</Button>
+          </CardHeader>
+          <CardContent>
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {platformUsers.map(user => (
+                        <TableRow key={user.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <UserAvatar src={user.avatarUrl} aiHint={user.avatarAiHint} fallbackInitials={user.name.charAt(0)} size="sm" />
+                                    <div>
+                                        <div className="font-medium">{user.name}</div>
+                                        <div className="text-xs text-muted-foreground">{user.email}</div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={user.role === 'Admin' ? 'default' : user.role === 'Teacher' ? 'secondary' : 'outline'}>{user.role}</Badge>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={user.status === 'Active' ? 'secondary' : 'destructive'} className={cn(user.status === 'Active' && 'bg-green-500/20 text-green-700')}>{user.status}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-500/10">
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Remove User</span>
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+             </Table>
+          </CardContent>
+        </Card>
 
         {/* Charts Section */}
         <div className="grid gap-6 md:grid-cols-2">

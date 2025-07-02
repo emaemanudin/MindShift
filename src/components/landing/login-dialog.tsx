@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type ReactNode } from 'react';
@@ -15,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/auth-provider';
 
 interface LoginDialogProps {
   children: ReactNode; // This will be the trigger button
@@ -23,6 +25,7 @@ interface LoginDialogProps {
 export function LoginDialog({ children }: LoginDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,17 +34,19 @@ export function LoginDialog({ children }: LoginDialogProps) {
     e.preventDefault();
     setIsLoading(true);
 
+    // This form is now designated for student login.
     if (email === 'dev@mindshift.com' && password === 'dev') {
       toast({
         title: "Login Successful",
         description: "Redirecting to your dashboard...",
       });
+      login('student');
       router.push('/dashboard');
     } else {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Invalid email or password. Use dev@mindshift.com and dev.",
+        description: "Invalid credentials. Use dev@mindshift.com and dev.",
       });
       setIsLoading(false);
     }

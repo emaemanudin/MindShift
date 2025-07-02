@@ -30,8 +30,6 @@ import {
   SidebarGroup,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { signOutUser } from "@/lib/firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/auth-provider";
 
@@ -56,24 +54,15 @@ export function AppSidebarContent() {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
 
-  const handleLogout = async () => {
-    try {
-      await signOutUser();
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
-      });
-      router.push("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast({
-        title: "Logout Failed",
-        description: "Could not log out. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    router.push("/");
   };
 
   return (
@@ -120,7 +109,7 @@ export function AppSidebarContent() {
                 isActive={pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
-                disabled={isLoading || (!user && item.href !== "/login" && item.href !== "/signup")}
+                disabled={isLoading || !user}
               >
                 <Link href={item.href}>
                   <item.icon className="h-5 w-5" />

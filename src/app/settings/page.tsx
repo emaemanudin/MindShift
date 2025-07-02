@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,14 +36,26 @@ import {
   Link2,
 } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const { toast } = useToast();
   const [userProfile, setUserProfile] = useState({
     name: user?.displayName || "Developer",
     email: user?.email || "dev@mindshift.com",
   });
   const [theme, setTheme] = useState("system");
+  
+  const isProfileEditable = role === 'admin';
+
+  const handleProfileSave = () => {
+    // This is a mock save.
+    toast({
+        title: "Profile Saved",
+        description: "Your profile information has been updated.",
+    });
+  }
 
   return (
     <AppLayout>
@@ -59,11 +72,11 @@ export default function SettingsPage() {
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" /> Profile & Appearance
             </TabsTrigger>
+            <TabsTrigger value="account">
+              <KeyRound className="mr-2 h-4 w-4" /> Account & Security
+            </TabsTrigger>
             <TabsTrigger value="ai">
               <Bot className="mr-2 h-4 w-4" /> AI Configuration
-            </TabsTrigger>
-            <TabsTrigger value="integrations">
-              <KeyRound className="mr-2 h-4 w-4" /> Connections & API
             </TabsTrigger>
             <TabsTrigger value="about">
               <Info className="mr-2 h-4 w-4" /> About
@@ -78,6 +91,7 @@ export default function SettingsPage() {
                     <CardTitle>Profile</CardTitle>
                     <CardDescription>
                       This is how your profile appears to others.
+                      {!isProfileEditable && " Only admins can change this information."}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -87,7 +101,7 @@ export default function SettingsPage() {
                         fallbackInitials={userProfile.name.charAt(0) || "D"}
                         size="lg"
                       />
-                      <Button variant="outline">Upload New Picture</Button>
+                      <Button variant="outline" disabled={!isProfileEditable}>Upload New Picture</Button>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -95,13 +109,14 @@ export default function SettingsPage() {
                           id="name"
                           value={userProfile.name}
                           onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
+                          disabled={!isProfileEditable}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
                         <Input id="email" type="email" value={userProfile.email} disabled />
                     </div>
-                    <Button>Save Profile</Button>
+                    <Button onClick={handleProfileSave} disabled={!isProfileEditable}>Save Profile</Button>
                   </CardContent>
                 </Card>
                 <Card>
@@ -144,6 +159,75 @@ export default function SettingsPage() {
                 </Card>
             </div>
           </TabsContent>
+          
+           {/* Account & Security Tab */}
+          <TabsContent value="account">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account & Security</CardTitle>
+                <CardDescription>
+                  Manage your password and other security settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Change Password</CardTitle>
+                    </CardHeader>
+                     <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="current-password">Current Password</Label>
+                            <Input id="current-password" type="password" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <Input id="new-password" type="password" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Input id="confirm-password" type="password" />
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button>Update Password</Button>
+                    </CardFooter>
+                 </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg">Platform Portals</CardTitle>
+                        <CardDescription>Access other parts of the MindShift ecosystem based on your role.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {role === 'admin' && (
+                            <Link href="/admin/dashboard" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                                <div>
+                                    <h4 className="font-semibold">Admin Dashboard</h4>
+                                    <p className="text-sm text-muted-foreground">Manage users, courses, and system-wide settings.</p>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </Link>
+                        )}
+                         {(role === 'admin' || role === 'teacher') && (
+                             <Link href="/teacher/dashboard" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                                 <div>
+                                    <h4 className="font-semibold">Teacher Portal</h4>
+                                    <p className="text-sm text-muted-foreground">Track student progress and manage classroom content.</p>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </Link>
+                         )}
+                         <Link href="/dashboard" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+                             <div>
+                                <h4 className="font-semibold">Student Dashboard</h4>
+                                <p className="text-sm text-muted-foreground">Access your courses, assignments, and study tools.</p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </Link>
+                    </CardContent>
+                 </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* AI Configuration Tab */}
           <TabsContent value="ai">
@@ -179,66 +263,6 @@ export default function SettingsPage() {
                     </div>
                     <Switch defaultChecked/>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <Label className="text-base">Enable Attention Tracking (Opt-in)</Label>
-                      <p className="text-sm text-muted-foreground">Allow AI to monitor focus during study sessions (local processing only).</p>
-                    </div>
-                    <Switch />
-                  </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Integrations & API Tab */}
-          <TabsContent value="integrations">
-            <Card>
-              <CardHeader>
-                <CardTitle>API Keys &amp; Integrations</CardTitle>
-                <CardDescription>
-                  Manage connections to external services and other portals.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                 <div className="space-y-2">
-                    <Label htmlFor="google-ai-key">Google AI API Key</Label>
-                    <Input id="google-ai-key" type="password" placeholder="Enter your Google AI API Key" value="••••••••••••••••••••••••••••••••" disabled />
-                 </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="openai-key">OpenAI API Key (Optional)</Label>
-                    <Input id="openai-key" type="password" placeholder="Enter your OpenAI API Key" disabled/>
-                 </div>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">LMS Integration</CardTitle>
-                    </CardHeader>
-                     <CardContent className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Connect to your Learning Management System.</p>
-                        <Button variant="outline">Connect to Canvas</Button>
-                    </CardContent>
-                 </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Platform Portals</CardTitle>
-                        <CardDescription>Access other parts of the MindShift ecosystem.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <Link href="/admin/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-                            <div>
-                                <h4 className="font-semibold">Admin Dashboard</h4>
-                                <p className="text-sm text-muted-foreground">Manage users, courses, and system-wide settings.</p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </Link>
-                         <Link href="/teacher/login" className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-                             <div>
-                                <h4 className="font-semibold">Teacher Portal</h4>
-                                <p className="text-sm text-muted-foreground">Track student progress and manage classroom content.</p>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                        </Link>
-                    </CardContent>
-                 </Card>
               </CardContent>
             </Card>
           </TabsContent>

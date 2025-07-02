@@ -2,40 +2,90 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useContext } from "react";
-import type { User } from "firebase/auth";
-// Keep this import for the type, but no firebase logic
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+
+// Mock User type, not real firebase
+type User = {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string | null;
+};
+export type UserRole = "student" | "teacher" | "admin" | null;
+
+// Mock users for different roles
+const mockUsers: Record<Exclude<UserRole, null>, User> = {
+  student: {
+    uid: "student-id-01",
+    email: "dev@mindshift.com",
+    displayName: "Dev User",
+    photoURL: "https://randomuser.me/api/portraits/lego/1.jpg",
+  },
+  teacher: {
+    uid: "teacher-id-01",
+    email: "teacher@teacher.com",
+    displayName: "Dr. Emily Carter",
+    photoURL: "https://randomuser.me/api/portraits/women/50.jpg",
+  },
+  admin: {
+    uid: "admin-id-01",
+    email: "admin@admin.com",
+    displayName: "Platform Admin",
+    photoURL: "https://randomuser.me/api/portraits/men/32.jpg",
+  },
+};
 
 interface AuthContextType {
   user: User | null;
+  role: UserRole;
   isLoading: boolean;
+  login: (role: Exclude<UserRole, null>) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A mock user object to use when auth is disabled.
-// Using a 'type assertion' for complex Firebase properties we don't need.
-const mockUser = {
-  uid: "mock-developer-id",
-  email: "dev@mindshift.com",
-  displayName: "Dev User",
-  photoURL: `https://randomuser.me/api/portraits/lego/1.jpg`,
-  emailVerified: true,
-  isAnonymous: false,
-} as User;
-
-
-// This is a mock AuthProvider to disable authentication for development.
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const value = {
-    user: mockUser, // Always provide a mock user
-    isLoading: false, // Never in loading state
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<UserRole>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // On initial load, try to get user from localStorage
+    try {
+      const storedUser = localStorage.getItem("mindshift-user");
+      const storedRole = localStorage.getItem("mindshift-role") as UserRole;
+      if (storedUser && storedRole) {
+        setUser(JSON.parse(storedUser));
+        setRole(storedRole);
+      }
+    } catch (error) {
+      // localStorage is not available or error parsing
+      console.error("Could not load user from localStorage", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const login = useCallback((loginRole: Exclude<UserRole, null>) => {
+    const userToLogin = mockUsers[loginRole];
+    localStorage.setItem("mindshift-user", JSON.stringify(userToLogin));
+    localStorage.setItem("mindshift-role", loginRole);
+    setUser(userToLogin);
+    setRole(loginRole);
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("mindshift-user");
+    localStorage.removeItem("mindshift-role");
+    setUser(null);
+    setRole(null);
+  }, []);
+
+  const value = { user, role, isLoading, login, logout };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 }
 

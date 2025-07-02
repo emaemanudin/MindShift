@@ -4,23 +4,32 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { School, LogOut, LayoutDashboard, BookCopy, ClipboardCheck, FilePenLine } from "lucide-react";
+import { School, LogOut, LayoutDashboard, BookCopy, ClipboardCheck, FilePenLine, UserSquare } from "lucide-react";
 import { DarkModeToggle } from "../shared/dark-mode-toggle";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
     { href: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/teacher/courses", label: "Courses", icon: BookCopy },
     { href: "/teacher/assignments", label: "Assignments", icon: ClipboardCheck },
     { href: "/teacher/quizzes", label: "Quizzes", icon: FilePenLine },
+    { href: "/dashboard", label: "Student View", icon: UserSquare }, // Link to student dashboard
 ];
 
 export function TeacherHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const { logout } = useAuth();
+  const { toast } = useToast();
   
   const handleLogout = () => {
-    // In a real app, this would clear the teacher session/token
+    logout();
+    toast({
+        title: "Logged Out",
+        description: "You have successfully logged out.",
+    });
     router.push('/teacher/login');
   };
 
@@ -32,7 +41,7 @@ export function TeacherHeader() {
       </Link>
       <nav className="flex-1 flex justify-center items-center gap-2">
          {navItems.map(item => (
-          <Button key={item.href} variant="ghost" asChild className={cn("text-muted-foreground", pathname.startsWith(item.href) && "text-primary bg-accent")}>
+          <Button key={item.href} variant="ghost" asChild className={cn("text-muted-foreground", (pathname.startsWith(item.href) && item.href !== '/dashboard') || (pathname === item.href) && "text-primary bg-accent")}>
               <Link href={item.href}>
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}

@@ -16,10 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck, LogIn } from "lucide-react";
+import { useAuth } from '@/components/auth/auth-provider';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function AdminLoginPage() {
         title: "Login Successful",
         description: "Redirecting to the Admin Dashboard...",
       });
-      // In a real app, you'd set a token/session here.
+      login('admin');
       router.push('/admin/dashboard');
     } else {
       toast({

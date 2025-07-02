@@ -1,5 +1,5 @@
 
-"use client"; // AppLayout needs to be a client component
+"use client";
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
@@ -15,12 +15,12 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { user, isLoading } = useAuth();
+  const { user, role, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/login");
+      router.replace("/");
     }
   }, [user, isLoading, router]);
 
@@ -32,10 +32,12 @@ export function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
-  if (!user && !isLoading) { // Ensure isLoading is false before checking !user
-    // This will be briefly shown before redirect effect kicks in, or if redirect fails
-    // router.push("/login") is handled by useEffect
-    return null;
+  // A student dashboard can be viewed by students, teachers, or admins.
+  const canView = role === 'student' || role === 'teacher' || role === 'admin';
+
+  if (!canView && !isLoading) {
+    // This state should be brief before the useEffect redirects.
+    return null; 
   }
 
   return (

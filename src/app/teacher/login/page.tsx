@@ -17,10 +17,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { School, LogIn } from "lucide-react";
 import Link from 'next/link';
+import { useAuth } from '@/components/auth/auth-provider';
 
 export default function TeacherLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function TeacherLoginPage() {
         title: "Login Successful",
         description: "Redirecting to the Teacher Dashboard...",
       });
-      // In a real app, you'd set a token/session here.
+      login('teacher');
       router.push('/teacher/dashboard');
     } else {
       toast({
@@ -99,7 +101,7 @@ export default function TeacherLoginPage() {
         </CardFooter>
       </Card>
         <Link href="/" className="text-sm text-primary hover:underline mt-6">
-            &larr; Back to Student Portal
+            &larr; Back to Main Portal
         </Link>
     </div>
   );
