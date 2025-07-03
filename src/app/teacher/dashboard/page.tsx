@@ -11,6 +11,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import { Users, ClipboardCheck, BookOpen, AlertTriangle, CalendarClock } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import type { ChartConfig } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
 
 // --- Data Interfaces ---
 interface TeacherStats {
@@ -28,6 +29,7 @@ interface StudentPerformance {
   currentGrade: number;
   attendance: number; // percentage
   lastActivity: string;
+  status: 'Excellent' | 'Good Progress' | 'Needs Assistance' | 'At-Risk';
 }
 
 interface Assignment {
@@ -44,11 +46,19 @@ const teacherStats: TeacherStats = {
   assignmentsToGrade: 8,
 };
 
-const atRiskStudents: StudentPerformance[] = [
-  { id: "s1", name: "Alex Johnson", avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg", avatarAiHint: "profile man", course: "Advanced JavaScript", currentGrade: 68, attendance: 85, lastActivity: "2 days ago" },
-  { id: "s2", name: "Maria Garcia", avatarUrl: "https://randomuser.me/api/portraits/women/76.jpg", avatarAiHint: "profile woman", course: "Database Systems", currentGrade: 71, attendance: 90, lastActivity: "1 day ago" },
-  { id: "s3", name: "David Chen", avatarUrl: "https://randomuser.me/api/portraits/men/77.jpg", avatarAiHint: "profile man", course: "Web Development", currentGrade: 65, attendance: 75, lastActivity: "4 days ago" },
-  { id: "s4", name: "Priya Patel", avatarUrl: "https://randomuser.me/api/portraits/women/78.jpg", avatarAiHint: "profile woman", course: "Advanced JavaScript", currentGrade: 72, attendance: 95, lastActivity: "Yesterday" },
+const getStudentStatus = (grade: number): StudentPerformance['status'] => {
+  if (grade >= 90) return 'Excellent';
+  if (grade >= 75) return 'Good Progress';
+  if (grade >= 60) return 'Needs Assistance';
+  return 'At-Risk';
+};
+
+const studentPerformanceData: StudentPerformance[] = [
+  { id: "s5", name: "Samantha Lee", avatarUrl: "https://randomuser.me/api/portraits/women/79.jpg", avatarAiHint: "profile woman", course: "Web Development", currentGrade: 95, attendance: 98, lastActivity: "Today", status: getStudentStatus(95) },
+  { id: "s4", name: "Priya Patel", avatarUrl: "https://randomuser.me/api/portraits/women/78.jpg", avatarAiHint: "profile woman", course: "Advanced JavaScript", currentGrade: 82, attendance: 95, lastActivity: "Yesterday", status: getStudentStatus(82) },
+  { id: "s2", name: "Maria Garcia", avatarUrl: "https://randomuser.me/api/portraits/women/76.jpg", avatarAiHint: "profile woman", course: "Database Systems", currentGrade: 71, attendance: 90, lastActivity: "1 day ago", status: getStudentStatus(71) },
+  { id: "s1", name: "Alex Johnson", avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg", avatarAiHint: "profile man", course: "Advanced JavaScript", currentGrade: 68, attendance: 85, lastActivity: "2 days ago", status: getStudentStatus(68) },
+  { id: "s3", name: "David Chen", avatarUrl: "https://randomuser.me/api/portraits/men/77.jpg", avatarAiHint: "profile man", course: "Web Development", currentGrade: 55, attendance: 75, lastActivity: "4 days ago", status: getStudentStatus(55) },
 ];
 
 const upcomingDeadlines: Assignment[] = [
@@ -81,6 +91,16 @@ function StatsCard({ title, value, icon: Icon }: { title: string; value: string 
   );
 }
 
+function StatusBadge({ status }: { status: StudentPerformance['status'] }) {
+    const statusStyles: Record<StudentPerformance['status'], string> = {
+        'Excellent': "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30",
+        'Good Progress': "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
+        'Needs Assistance': "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30",
+        'At-Risk': "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30",
+    };
+    return <Badge variant="outline" className={cn("text-xs", statusStyles[status])}>{status}</Badge>;
+}
+
 export default function TeacherDashboardPage() {
   return (
     <TeacherLayout>
@@ -99,31 +119,36 @@ export default function TeacherDashboardPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             <Card className="lg:col-span-3 shadow-lg">
                 <CardHeader>
-                    <CardTitle>At-Risk Students</CardTitle>
-                    <CardDescription>Students who may require additional attention and support.</CardDescription>
+                    <CardTitle>Student Performance Overview</CardTitle>
+                    <CardDescription>A summary of student performance, highlighting those who may need attention.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Student</TableHead>
-                                <TableHead>Course</TableHead>
-                                <TableHead className="text-center">Grade</TableHead>
+                                <TableHead>Grade</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Last Activity</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {atRiskStudents.map(student => (
-                                <TableRow key={student.id} className="hover:bg-red-500/5">
+                            {studentPerformanceData.map(student => (
+                                <TableRow key={student.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <UserAvatar src={student.avatarUrl} aiHint={student.avatarAiHint} fallbackInitials={student.name.charAt(0)} size="sm" />
-                                            <span className="font-medium">{student.name}</span>
+                                            <div>
+                                              <div className="font-medium">{student.name}</div>
+                                              <div className="text-xs text-muted-foreground">{student.course}</div>
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{student.course}</TableCell>
-                                    <TableCell className="text-center">
+                                    <TableCell>
                                         <Badge variant={student.currentGrade < 70 ? "destructive" : "secondary"}>{student.currentGrade}%</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge status={student.status} />
                                     </TableCell>
                                     <TableCell className="text-right text-muted-foreground text-xs">{student.lastActivity}</TableCell>
                                 </TableRow>

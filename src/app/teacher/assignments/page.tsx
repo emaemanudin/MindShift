@@ -12,9 +12,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { BookCheck, Check, Search, Filter, FileQuestion } from "lucide-react";
+import { BookCheck, Check, Search, Filter, FileQuestion, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
 
 // --- Data Interfaces ---
+interface QuizAnswer {
+  questionId: string;
+  questionText: string;
+  options: string[];
+  correctAnswer: string;
+  studentAnswer: string;
+}
+
 interface Submission {
   studentId: string;
   studentName: string;
@@ -23,6 +33,7 @@ interface Submission {
   status: "Graded" | "Needs Grading" | "Not Submitted";
   submittedOn?: string; // ISO date string
   grade?: number; // 0-100
+  answers?: QuizAnswer[];
 }
 
 interface Assignment {
@@ -56,7 +67,19 @@ const mockAssignments: Assignment[] = [
     course: "Chemistry Crew",
     dueDate: "2025-07-22",
     submissions: [
-      { studentId: "s_dev", studentName: "Developer", studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", studentAvatarAiHint: "profile lego", status: "Needs Grading", submittedOn: "2025-07-21T14:00:00Z" }
+      { 
+        studentId: "s_dev", 
+        studentName: "Developer", 
+        studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", 
+        studentAvatarAiHint: "profile lego", 
+        status: "Needs Grading", 
+        submittedOn: "2025-07-21T14:00:00Z",
+        answers: [
+          { questionId: 'q1', questionText: "What is the chemical symbol for Gold?", options: ["Ag", "Au", "Ga", "Ge"], correctAnswer: "Au", studentAnswer: "Au" },
+          { questionId: 'q2', questionText: "Which of the following is a noble gas?", options: ["Oxygen", "Hydrogen", "Neon", "Nitrogen"], correctAnswer: "Neon", studentAnswer: "Neon" },
+          { questionId: 'q3', questionText: "What is the pH of a neutral solution?", options: ["5", "7", "9", "11"], correctAnswer: "7", studentAnswer: "9" },
+        ]
+      }
     ]
   },
   {
@@ -81,6 +104,54 @@ const mockAssignments: Assignment[] = [
     ],
   }
 ];
+
+// --- New Component for Submission Review Dialog ---
+function SubmissionReviewDialog({ submission }: { submission: Submission }) {
+    if (!submission.answers) return null;
+
+    const calculatedScore = submission.answers.reduce((acc, ans) => acc + (ans.studentAnswer === ans.correctAnswer ? 1 : 0), 0);
+    const totalQuestions = submission.answers.length;
+    const percentage = Math.round((calculatedScore / totalQuestions) * 100);
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm">Review</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Review Submission: {submission.studentName}</DialogTitle>
+                    <DialogDescription>
+                        AI Graded Score: {percentage}%. Review the answers below to confirm.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto space-y-4 p-1">
+                    {submission.answers.map((ans, index) => {
+                        const isCorrect = ans.studentAnswer === ans.correctAnswer;
+                        return (
+                            <div key={ans.questionId} className={cn("p-4 border rounded-lg", isCorrect ? 'border-green-300 bg-green-50/50 dark:bg-green-500/10' : 'border-red-300 bg-red-50/50 dark:bg-red-500/10')}>
+                                <p className="font-semibold">{index + 1}. {ans.questionText}</p>
+                                <div className="mt-2 space-y-1">
+                                    <div className={cn("flex items-center gap-2 text-sm p-2 rounded", isCorrect ? 'bg-green-100 dark:bg-green-500/20' : 'bg-red-100 dark:bg-red-500/20')}>
+                                        {isCorrect ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
+                                        <span>Student's Answer: <span className="font-medium">{ans.studentAnswer || "Not answered"}</span></span>
+                                    </div>
+                                    {!isCorrect && (
+                                         <div className="flex items-center gap-2 text-sm p-2 rounded bg-green-100 dark:bg-green-500/20">
+                                            <CheckCircle className="h-4 w-4 text-green-600" />
+                                            <span>Correct Answer: <span className="font-medium">{ans.correctAnswer}</span></span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 
 export default function TeacherAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>(mockAssignments);
@@ -204,7 +275,7 @@ export default function TeacherAssignmentsPage() {
                         <TableHead>Status</TableHead>
                         <TableHead className="w-[120px]">Grade</TableHead>
                         <TableHead>Feedback</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -253,7 +324,13 @@ export default function TeacherAssignmentsPage() {
                           </TableCell>
                           <TableCell className="text-right">
                              {sub.status === "Needs Grading" && (
-                                <Button size="sm" onClick={() => handleGradeSubmit(sub.studentId)}>Submit Grade</Button>
+                                <div className="flex gap-2 justify-end">
+                                    {selectedAssignment.type === 'quiz' && sub.answers && <SubmissionReviewDialog submission={sub} />}
+                                    <Button size="sm" onClick={() => handleGradeSubmit(sub.studentId)}>Submit Grade</Button>
+                                </div>
+                             )}
+                              {sub.status === "Graded" && selectedAssignment.type === 'quiz' && (
+                                <SubmissionReviewDialog submission={sub} />
                              )}
                           </TableCell>
                         </TableRow>
