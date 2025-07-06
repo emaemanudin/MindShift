@@ -76,9 +76,14 @@ export default function QuizStartPage() {
     const handleSubmit = useCallback(() => {
         setQuizState("results");
         setTimeLeft(0); // Stop timer
-        // In a real app, you would send answers to the backend here.
-        // For the demo, we change the status on the assignments page manually.
-    }, []);
+        // In a real app, this would send answers to the backend.
+        // For this demo, we simulate this by informing the user where to see the result.
+        toast({
+            title: "Quiz Submitted Successfully!",
+            description: "Your answers have been 'sent'. You can now go to the Teacher Portal's Grading page to see this submission.",
+            duration: 8000
+        });
+    }, [toast]);
 
     // Timer Effect
     useEffect(() => {

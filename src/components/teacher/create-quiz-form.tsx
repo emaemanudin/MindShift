@@ -50,12 +50,12 @@ export function CreateQuizForm() {
         toast({ variant: "destructive", title: "Cannot Assign", description: "No quiz has been generated yet."});
         return;
     }
-    // In a real app, this would send the quiz data to the backend.
-    // For this demo, we'll simulate it with a toast message.
+    // In a real app, this would send the quiz data to a database.
+    // For this prototype, we'll confirm the action and point to the result.
     toast({
-        title: "Quiz Assigned!",
-        description: `"${generatedQuiz.quizTitle}" is now available. A sample quiz has been added to the student's assignment page for demonstration.`,
-        duration: 5000,
+        title: "Quiz 'Uploaded' Successfully!",
+        description: `To demonstrate the complete workflow, a pre-configured version of this quiz is now available for the student under "My Quizzes" as the 'Chemistry Midterm Quiz'.`,
+        duration: 8000,
     });
   };
 
