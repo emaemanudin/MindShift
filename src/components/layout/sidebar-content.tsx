@@ -17,6 +17,7 @@ import {
   SearchCode,
   Loader2,
   Bot,
+  FileQuestion,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
@@ -37,7 +38,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/courses", label: "My Courses", icon: BookOpen },
   { href: "/schedule", label: "Schedule", icon: CalendarDays },
-  { href: "/assignments", label: "Assignments", icon: ListChecks, badge: "3" },
+  { href: "/assignments", label: "Assignments", icon: ListChecks, badge: "2" },
+  { href: "/quizzes", label: "Quizzes", icon: FileQuestion },
   { href: "/progress", label: "Progress", icon: LineChart },
   { href: "/resource-finder", label: "Resource Finder", icon: SearchCode },
   { href: "/study-groups", label: "Study Groups", icon: Users },

@@ -3,7 +3,6 @@
 
 import type { ReactNode } from "react";
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -16,41 +15,29 @@ import {
   Target,
   CalendarDays,
   FileText,
-  Presentation,
-  ClipboardCheck,
   Edit3,
   Activity,
   PlayCircle,
   CheckCircle,
   PlusCircle,
-  FileQuestion,
-  Timer,
-  MessageCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-// Data types
+// Data types for Assignments
 export interface Assignment {
   id: string;
   title: string;
   course: string;
   dueDate: string;
-  type: 'assignment' | 'quiz';
-  status: "Pending" | "In Progress" | "Submitted" | "Graded" | "Completed" | "Take Quiz";
+  status: "Pending" | "In Progress" | "Submitted" | "Completed";
   icon: LucideIcon;
   iconColorClass: string;
   description?: string;
-  // Assignment specific
   estimatedTimeHours?: number; 
   timeSpentHours?: number; 
   progress?: number; // 0-100
-  // Quiz specific
-  path?: string;
-  timeLimitMinutes?: number;
-  grade?: number; // 0-100
-  feedback?: string;
 }
 
 interface TimeTracking {
@@ -78,14 +65,13 @@ const calculateProgress = (timeSpentHours: number, estimatedTimeHours: number): 
 };
 
 
-// Initial Mock Data
+// Initial Mock Data - Only Assignments
 const initialAssignments: Assignment[] = [
   {
     id: "1",
     title: "Calculus Problem Set 3",
     course: "Mathematics 101",
     dueDate: "2025-07-15",
-    type: 'assignment',
     status: "In Progress",
     estimatedTimeHours: 4,
     timeSpentHours: 1.5,
@@ -95,52 +81,10 @@ const initialAssignments: Assignment[] = [
     description: "Chapters 5-7, focusing on integration techniques.",
   },
   {
-    id: "6",
-    title: "Chemistry Midterm Quiz",
-    course: "Chemistry Crew",
-    dueDate: "2025-07-22",
-    status: "Take Quiz",
-    type: 'quiz',
-    icon: FileQuestion,
-    iconColorClass: "text-red-500",
-    description: "A timed quiz covering chapters 1-5. This is a secure assessment.",
-    path: '/quiz/start',
-    timeLimitMinutes: 15
-  },
-   {
-    id: "7",
-    title: "History Midterm Quiz",
-    course: "World History",
-    dueDate: "2025-07-19",
-    status: "Submitted",
-    type: 'quiz',
-    icon: ClipboardCheck,
-    iconColorClass: "text-purple-500",
-    description: "Your submission is awaiting a grade from your teacher.",
-    path: '/quiz/start', // In a real app, this would link to a results summary
-    timeLimitMinutes: 20,
-  },
-  {
-    id: "8",
-    title: "JavaScript Fundamentals Quiz",
-    course: "Web Development",
-    dueDate: "2025-07-12",
-    status: "Graded",
-    type: 'quiz',
-    icon: CheckCircle,
-    iconColorClass: "text-green-500",
-    description: "Your quiz has been graded. See feedback below.",
-    path: '/quiz/start',
-    timeLimitMinutes: 10,
-    grade: 88,
-    feedback: "Great work on the fundamentals! Pay close attention to the difference between `let` and `const`."
-  },
-  {
     id: "2",
     title: "History Essay: The Roman Empire",
     course: "World History",
     dueDate: "2025-07-20",
-    type: 'assignment',
     status: "Pending",
     estimatedTimeHours: 6,
     timeSpentHours: 0,
@@ -154,7 +98,6 @@ const initialAssignments: Assignment[] = [
     title: "Physics Lab Report: Optics",
     course: "Physics 202",
     dueDate: "2025-07-10",
-    type: 'assignment',
     status: "Submitted",
     estimatedTimeHours: 3,
     timeSpentHours: 3,
@@ -184,7 +127,7 @@ interface AssignmentItemProps {
 }
 
 function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemProps) {
-  const { id, title, course, dueDate, status, icon: Icon, iconColorClass, description, type, grade, feedback } = assignment;
+  const { id, title, course, dueDate, status, icon: Icon, iconColorClass, description } = assignment;
   const { toast } = useToast();
 
   const getStatusBadgeClass = (currentStatus: Assignment["status"]): string => {
@@ -196,18 +139,14 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
       case "Submitted":
       case "Completed":
         return "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/30";
-      case "Graded":
-        return "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30";
-      case "Take Quiz":
-        return "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30";
       default:
         return "";
     }
   };
   
   const handleLogTimeClick = () => {
-    if (status === "Graded" || status === "Submitted" || status === "Completed") {
-        toast({ title: "Task Update", description: "Cannot log time for a task that is already submitted or graded.", variant: "default"});
+    if (status === "Submitted" || status === "Completed") {
+        toast({ title: "Task Update", description: "Cannot log time for a task that is already submitted.", variant: "default"});
         return;
     }
     onLogTime(id, 0.5); // Log 30 minutes (0.5 hours)
@@ -218,7 +157,7 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
   };
 
   const handleCompleteClick = () => {
-     if (status === "Graded" || status === "Submitted" || status === "Completed") {
+     if (status === "Submitted" || status === "Completed") {
         toast({ title: "Task Update", description: "Task is already marked as complete or submitted.", variant: "default"});
         return;
     }
@@ -255,8 +194,7 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        {type === 'assignment' ? (
-          <>
+        <>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center">
                 <CalendarDays className="h-4 w-4 mr-1.5" />
@@ -271,71 +209,29 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
               <Progress value={assignment.progress || 0} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1 text-right">{assignment.progress || 0}% complete</p>
             </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <CalendarDays className="h-4 w-4 mr-1.5" />
-              <span>Due: {new Date(dueDate + 'T00:00:00').toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center">
-              <Timer className="h-4 w-4 mr-1.5" />
-              <span>{assignment.timeLimitMinutes} min limit</span>
-            </div>
-          </div>
-        )}
-        {status === 'Graded' && grade !== undefined && (
-          <div className="!mt-4 p-3 bg-green-500/10 rounded-md border border-green-500/20">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold text-green-800 dark:text-green-300">Grade: {grade}%</h4>
-              </div>
-              {feedback && (
-                <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 flex items-center"><MessageCircle className="h-3 w-3 mr-1.5"/>Teacher Feedback:</p>
-                    <p className="text-sm text-foreground italic">"{feedback}"</p>
-                </div>
-              )}
-          </div>
-        )}
+        </>
       </CardContent>
       <CardFooter className="border-t px-6 py-3">
-        {type === 'assignment' ? (
-            <div className="flex justify-end gap-2 w-full">
-              {status === "Pending" && (
-                <Button variant="ghost" size="sm" onClick={handleStartTaskClick} className="text-xs">
-                  <PlayCircle className="mr-1.5 h-4 w-4" /> Start Task
+        <div className="flex justify-end gap-2 w-full">
+            {status === "Pending" && (
+            <Button variant="ghost" size="sm" onClick={handleStartTaskClick} className="text-xs">
+                <PlayCircle className="mr-1.5 h-4 w-4" /> Start Task
+            </Button>
+            )}
+            {(status === "Pending" || status === "In Progress") && (
+            <>
+                <Button variant="outline" size="sm" onClick={handleLogTimeClick} className="text-xs">
+                <PlusCircle className="mr-1.5 h-4 w-4" /> Log 30m
                 </Button>
-              )}
-              {(status === "Pending" || status === "In Progress") && (
-                <>
-                  <Button variant="outline" size="sm" onClick={handleLogTimeClick} className="text-xs">
-                    <PlusCircle className="mr-1.5 h-4 w-4" /> Log 30m
-                  </Button>
-                  <Button variant="default" size="sm" onClick={handleCompleteClick} className="text-xs">
-                    <CheckCircle className="mr-1.5 h-4 w-4" /> Complete
-                  </Button>
-                </>
-              )}
-              {(status === "Completed" || status === "Submitted" || status === "Graded") && (
-                <p className="text-xs text-muted-foreground">No further actions.</p>
-              )}
-            </div>
-        ) : (
-            <div className="flex justify-end w-full">
-                {status === "Take Quiz" ? (
-                    <Link href={assignment.path || '#'} passHref>
-                        <Button>
-                            <PlayCircle className="mr-2 h-4 w-4"/>
-                            Start Quiz
-                        </Button>
-                    </Link>
-                ) : (
-                     <Button variant="outline" disabled>
-                        Quiz {status}
-                    </Button>
-                )}
-            </div>
-        )}
+                <Button variant="default" size="sm" onClick={handleCompleteClick} className="text-xs">
+                <CheckCircle className="mr-1.5 h-4 w-4" /> Complete
+                </Button>
+            </>
+            )}
+            {(status === "Completed" || status === "Submitted") && (
+            <p className="text-xs text-muted-foreground">No further actions.</p>
+            )}
+        </div>
       </CardFooter>
     </Card>
   );
@@ -429,9 +325,8 @@ export default function AssignmentsPage() {
       prevAssignments.map(asm => {
         if (asm.id === id) {
           const updatedAssignment = { ...asm, status: newStatus };
-          if (newStatus === "Completed" || newStatus === "Submitted" || newStatus === "Graded") {
+          if (newStatus === "Completed" || newStatus === "Submitted") {
             updatedAssignment.progress = 100;
-            // Optionally adjust timeSpentHours to estimatedTimeHours if not already met or exceeded
             if (updatedAssignment.timeSpentHours && updatedAssignment.estimatedTimeHours && updatedAssignment.timeSpentHours < updatedAssignment.estimatedTimeHours) {
               updatedAssignment.timeSpentHours = updatedAssignment.estimatedTimeHours;
             }
@@ -470,7 +365,7 @@ export default function AssignmentsPage() {
         <section aria-labelledby="assignments-heading">
           <h2 id="assignments-heading" className="text-2xl font-semibold text-foreground mb-4 flex items-center">
             <CalendarDays className="mr-2 h-6 w-6 text-primary" />
-            Your Tasks & Quizzes
+            Your Assignments
           </h2>
           {assignments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
