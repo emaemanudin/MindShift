@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -34,22 +34,16 @@ export interface Quiz {
   timeLimitMinutes?: number;
   grade?: number; // 0-100
   feedback?: string;
+  questions: {
+    id: string;
+    questionText: string;
+    options: string[];
+    correctAnswer: string;
+  }[];
 }
 
 // Initial Mock Data for quizzes
 const initialQuizzes: Quiz[] = [
-    {
-        id: "6",
-        title: "Chemistry Midterm Quiz",
-        course: "Chemistry Crew",
-        dueDate: "2025-07-22",
-        status: "Take Quiz",
-        icon: FileQuestion,
-        iconColorClass: "text-red-500",
-        description: "A timed quiz covering chapters 1-5. This is a secure assessment.",
-        path: '/quiz/start',
-        timeLimitMinutes: 15
-    },
     {
         id: "7",
         title: "History Midterm Quiz",
@@ -59,8 +53,9 @@ const initialQuizzes: Quiz[] = [
         icon: ClipboardCheck,
         iconColorClass: "text-purple-500",
         description: "Your submission is awaiting a grade from your teacher.",
-        path: '/quiz/start', // In a real app, this would link to a results summary
+        path: '/quiz/start',
         timeLimitMinutes: 20,
+        questions: [], // No questions needed for a submitted quiz preview
     },
     {
         id: "8",
@@ -74,7 +69,8 @@ const initialQuizzes: Quiz[] = [
         path: '/quiz/start',
         timeLimitMinutes: 10,
         grade: 88,
-        feedback: "Great work on the fundamentals! Pay close attention to the difference between `let` and `const`."
+        feedback: "Great work on the fundamentals! Pay close attention to the difference between `let` and `const`.",
+        questions: [], // No questions needed for a graded quiz preview
     },
 ];
 
@@ -94,6 +90,12 @@ function QuizItem({ quiz }: { quiz: Quiz }) {
         return "";
     }
   };
+  
+  const handleStartQuiz = () => {
+    // Store the full quiz object in local storage for the quiz page to consume
+    localStorage.setItem('activeQuiz', JSON.stringify(quiz));
+  };
+
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow flex flex-col">
@@ -140,7 +142,7 @@ function QuizItem({ quiz }: { quiz: Quiz }) {
       <CardFooter className="border-t px-6 py-3">
         <div className="flex justify-end w-full">
             {status === "Take Quiz" ? (
-                <Link href={path || '#'} passHref>
+                <Link href={path || '#'} passHref onClick={handleStartQuiz}>
                     <Button>
                         <PlayCircle className="mr-2 h-4 w-4"/>
                         Start Quiz
@@ -159,6 +161,27 @@ function QuizItem({ quiz }: { quiz: Quiz }) {
 
 export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>(initialQuizzes);
+  
+  useEffect(() => {
+    // On page load, check for a newly assigned quiz from the teacher's page
+    const newQuizJSON = localStorage.getItem('newlyAssignedQuiz');
+    if (newQuizJSON) {
+        const newQuizData = JSON.parse(newQuizJSON);
+        const formattedQuiz: Quiz = {
+            ...newQuizData,
+            icon: FileQuestion,
+            iconColorClass: "text-blue-500",
+            description: `An AI-generated quiz with ${newQuizData.questions.length} questions.`
+        };
+
+        // Add the new quiz to the list, preventing duplicates
+        setQuizzes(prev => [formattedQuiz, ...prev.filter(q => q.id !== formattedQuiz.id)]);
+        
+        // Clear the item from storage so it's only added once
+        localStorage.removeItem('newlyAssignedQuiz');
+    }
+  }, []);
+
 
   return (
     <AppLayout>

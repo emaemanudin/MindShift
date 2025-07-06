@@ -13,8 +13,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { generateQuizFromDocument, type QuizGeneratorOutput } from "@/ai/flows/quiz-generator";
-import { Wand2, Loader2, ListChecks, Settings, Lock } from "lucide-react";
+import { Wand2, Loader2, ListChecks, Settings, Lock, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DatePicker } from '../ui/date-picker';
+import { format, addDays } from 'date-fns';
 
 type QuizState = 'idle' | 'loading' | 'generated';
 
@@ -25,6 +27,7 @@ export function CreateQuizForm() {
   const [quizState, setQuizState] = useState<QuizState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [generatedQuiz, setGeneratedQuiz] = useState<QuizGeneratorOutput | null>(null);
+  const [dueDate, setDueDate] = useState<Date | undefined>(addDays(new Date(), 7));
 
   const handleGenerateQuiz = async () => {
     if (!documentContent.trim()) {
@@ -50,11 +53,27 @@ export function CreateQuizForm() {
         toast({ variant: "destructive", title: "Cannot Assign", description: "No quiz has been generated yet."});
         return;
     }
-    // In a real app, this would send the quiz data to a database.
-    // For this prototype, we'll confirm the action and point to the result.
+    if (!dueDate) {
+        toast({ variant: "destructive", title: "Cannot Assign", description: "Please select a due date for the quiz."});
+        return;
+    }
+
+    // This is the object that will be passed to the student's page via localStorage
+    const quizToAssign = {
+        ...generatedQuiz,
+        id: `quiz-ai-${Date.now()}`,
+        course: "AI Generated Course",
+        dueDate: format(dueDate, "yyyy-MM-dd"),
+        status: "Take Quiz",
+        timeLimitMinutes: questionCount * 1.5,
+        path: '/quiz/start',
+    };
+
+    localStorage.setItem('newlyAssignedQuiz', JSON.stringify(quizToAssign));
+
     toast({
-        title: "Quiz 'Uploaded' Successfully!",
-        description: `To demonstrate the complete workflow, a pre-configured version of this quiz is now available for the student under "My Quizzes" as the 'Chemistry Midterm Quiz'.`,
+        title: "Quiz Assigned Successfully!",
+        description: `The quiz "${generatedQuiz.quizTitle}" is now available on the student's 'My Quizzes' page.`,
         duration: 8000,
     });
   };
@@ -155,6 +174,16 @@ export function CreateQuizForm() {
                 <CardDescription>Set the rules and security options for this quiz.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>Due Date</Label>
+                        <DatePicker date={dueDate} setDate={setDueDate} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="timeLimit">Total Time Limit (minutes)</Label>
+                        <Input id="timeLimit" type="number" defaultValue={questionCount * 1.5} />
+                    </div>
+                 </div>
                  <div className="flex items-center justify-between rounded-lg border p-3">
                     <Label>Question Randomization</Label>
                     <Switch defaultChecked/>
@@ -163,14 +192,13 @@ export function CreateQuizForm() {
                     <Label>Option Shuffling</Label>
                     <Switch defaultChecked/>
                  </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="timeLimit">Total Time Limit (minutes)</Label>
-                    <Input id="timeLimit" type="number" defaultValue={questionCount * 1.5} />
-                 </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
                  <Button variant="secondary">Save as Draft</Button>
-                 <Button onClick={handleAssignQuiz} disabled={quizState !== 'generated'}>Assign Quiz</Button>
+                 <Button onClick={handleAssignQuiz} disabled={quizState !== 'generated'}>
+                    <CalendarPlus className="mr-2 h-4 w-4"/>
+                    Assign Quiz
+                 </Button>
             </CardFooter>
         </Card>
         

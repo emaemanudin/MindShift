@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TeacherLayout } from "@/components/teacher/teacher-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { BookCheck, Check, Search, Filter, FileQuestion, CheckCircle, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { addDays, format } from 'date-fns';
 
 
 // --- Data Interfaces ---
@@ -59,28 +60,6 @@ const mockAssignments: Assignment[] = [
       { studentId: "s3", studentName: "David Chen", studentAvatarUrl: "https://randomuser.me/api/portraits/men/77.jpg", studentAvatarAiHint: "profile man", status: "Needs Grading", submittedOn: "2025-07-15T11:30:00Z" },
        { studentId: "s5", studentName: "Samantha Lee", studentAvatarUrl: "https://randomuser.me/api/portraits/women/79.jpg", studentAvatarAiHint: "profile woman", status: "Not Submitted" },
     ],
-  },
-  {
-    id: "assign_quiz_1",
-    title: "Chemistry Midterm Quiz",
-    type: "quiz",
-    course: "Chemistry Crew",
-    dueDate: "2025-07-22",
-    submissions: [
-      { 
-        studentId: "s_dev", 
-        studentName: "Developer", 
-        studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg", 
-        studentAvatarAiHint: "profile lego", 
-        status: "Needs Grading", 
-        submittedOn: "2025-07-21T14:00:00Z",
-        answers: [
-          { questionId: 'q1', questionText: "What is the chemical symbol for Gold?", options: ["Ag", "Au", "Ga", "Ge"], correctAnswer: "Au", studentAnswer: "Au" },
-          { questionId: 'q2', questionText: "Which of the following is a noble gas?", options: ["Oxygen", "Hydrogen", "Neon", "Nitrogen"], correctAnswer: "Neon", studentAnswer: "Neon" },
-          { questionId: 'q3', questionText: "What is the pH of a neutral solution?", options: ["5", "7", "9", "11"], correctAnswer: "7", studentAnswer: "9" },
-        ]
-      }
-    ]
   },
   {
     id: "assign2",
@@ -160,6 +139,59 @@ export default function TeacherAssignmentsPage() {
   const [feedback, setFeedback] = useState<Record<string, string>>({}); // studentId -> feedback string
   const { toast } = useToast();
 
+  useEffect(() => {
+    // On page load, check for new quiz submissions from students
+    const submissionJSON = localStorage.getItem('newlySubmittedQuiz');
+    if (submissionJSON) {
+        const submissionData = JSON.parse(submissionJSON);
+
+        const newSubmission: Submission = {
+            studentId: `s_dev_${Date.now()}`,
+            studentName: submissionData.studentName,
+            studentAvatarUrl: submissionData.studentAvatarUrl,
+            studentAvatarAiHint: submissionData.studentAvatarAiHint,
+            status: "Needs Grading",
+            submittedOn: new Date().toISOString(),
+            answers: submissionData.answers,
+        };
+
+        setAssignments(prev => {
+            const assignmentExists = prev.some(a => a.title === submissionData.quizTitle);
+            
+            let updatedAssignments;
+            if (assignmentExists) {
+                // Add submission to existing assignment
+                updatedAssignments = prev.map(a => 
+                    a.title === submissionData.quizTitle 
+                        ? { ...a, submissions: [newSubmission, ...a.submissions] }
+                        : a
+                );
+            } else {
+                // Create a new assignment entry for the quiz
+                const newAssignment: Assignment = {
+                    id: `assign_quiz_${Date.now()}`,
+                    title: submissionData.quizTitle,
+                    type: "quiz",
+                    course: "AI Generated Course",
+                    dueDate: format(addDays(new Date(), -1), "yyyy-MM-dd"),
+                    submissions: [newSubmission],
+                };
+                updatedAssignments = [newAssignment, ...prev];
+            }
+            
+            // Auto-select the assignment that was just updated/created
+            const newlySelected = updatedAssignments.find(a => a.title === submissionData.quizTitle);
+            if (newlySelected) setSelectedAssignment(newlySelected);
+
+            return updatedAssignments;
+        });
+
+        localStorage.removeItem('newlySubmittedQuiz');
+        toast({ title: "New Submission Received!", description: `A quiz submission for "${submissionData.quizTitle}" is ready for grading.` });
+    }
+  }, [toast]);
+
+
   const handleGradeChange = (studentId: string, grade: string) => {
     setGrades(prev => ({ ...prev, [studentId]: grade }));
   };
@@ -176,7 +208,7 @@ export default function TeacherAssignmentsPage() {
       return;
     }
 
-    setAssignments(prev =>
+    const updateAssignments = (prev: Assignment[]) =>
       prev.map(assign =>
         assign.id === selectedAssignment.id
           ? {
@@ -188,18 +220,10 @@ export default function TeacherAssignmentsPage() {
               ),
             }
           : assign
-      )
-    );
-    
-    // Also update the selected assignment to reflect the change immediately
-    setSelectedAssignment(prev => prev && {
-        ...prev,
-        submissions: prev.submissions.map(sub => 
-            sub.studentId === studentId
-                ? { ...sub, status: "Graded", grade: gradeValue }
-                : sub
-        )
-    });
+      );
+
+    setAssignments(updateAssignments);
+    setSelectedAssignment(prev => prev ? updateAssignments([prev])[0] : null);
 
     toast({ title: "Grade Submitted!", description: `Grade for ${selectedAssignment.submissions.find(s=>s.studentId === studentId)?.studentName} has been saved.` });
   };
@@ -329,7 +353,7 @@ export default function TeacherAssignmentsPage() {
                                     <Button size="sm" onClick={() => handleGradeSubmit(sub.studentId)}>Submit Grade</Button>
                                 </div>
                              )}
-                              {sub.status === "Graded" && selectedAssignment.type === 'quiz' && (
+                              {sub.status === "Graded" && selectedAssignment.type === 'quiz' && sub.answers && (
                                 <SubmissionReviewDialog submission={sub} />
                              )}
                           </TableCell>

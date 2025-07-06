@@ -21,35 +21,9 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
-import { ShieldAlert, Timer, PlayCircle, FileQuestion, CheckCircle, XCircle } from "lucide-react";
+import { ShieldAlert, Timer, PlayCircle, FileQuestion, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// --- Mock Data ---
-const quizData = {
-    id: "chem101-midterm",
-    title: "Chemistry Midterm Quiz",
-    timeLimitMinutes: 0.5, // Shortened for demo purposes
-    questions: [
-        {
-            id: 'q1',
-            questionText: "What is the chemical symbol for Gold?",
-            options: ["Ag", "Au", "Ga", "Ge"],
-            correctAnswer: "Au"
-        },
-        {
-            id: 'q2',
-            questionText: "Which of the following is a noble gas?",
-            options: ["Oxygen", "Hydrogen", "Neon", "Nitrogen"],
-            correctAnswer: "Neon"
-        },
-        {
-            id: 'q3',
-            questionText: "What is the pH of a neutral solution?",
-            options: ["5", "7", "9", "11"],
-            correctAnswer: "7"
-        }
-    ]
-};
+import type { Quiz } from '../quizzes/page'; // Import the quiz type
 
 type QuizState = "intro" | "active" | "results";
 type Answers = Record<string, string>;
@@ -57,33 +31,76 @@ type Answers = Record<string, string>;
 export default function QuizStartPage() {
     const router = useRouter();
     const { toast } = useToast();
+    
+    // State to hold the dynamically loaded quiz data
+    const [quizData, setQuizData] = useState<Quiz | null>(null);
+
     const [quizState, setQuizState] = useState<QuizState>("intro");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Answers>({});
-    const [timeLeft, setTimeLeft] = useState(quizData.timeLimitMinutes * 60);
+    const [timeLeft, setTimeLeft] = useState(0);
     const [warningCount, setWarningCount] = useState(0);
+    
+    useEffect(() => {
+        // On component mount, load the active quiz from local storage
+        const activeQuizJSON = localStorage.getItem('activeQuiz');
+        if (activeQuizJSON) {
+            const data = JSON.parse(activeQuizJSON);
+            setQuizData(data);
+            setTimeLeft((data.timeLimitMinutes || 1) * 60);
+            // Don't remove from storage, in case of refresh
+        } else {
+            // If no active quiz, redirect back
+            toast({ title: "No Quiz Selected", description: "Please start a quiz from the 'My Quizzes' page.", variant: "destructive" });
+            router.replace('/quizzes');
+        }
+    }, [router, toast]);
+
 
     const handleAnswerChange = (questionId: string, value: string) => {
         setAnswers(prev => ({ ...prev, [questionId]: value }));
     };
 
     const calculateScore = useCallback(() => {
+        if (!quizData) return 0;
         return quizData.questions.reduce((score, question) => {
             return answers[question.id] === question.correctAnswer ? score + 1 : score;
         }, 0);
-    }, [answers]);
+    }, [answers, quizData]);
 
     const handleSubmit = useCallback(() => {
+        if (!quizData) return;
+        
+        const score = calculateScore();
+        
+        // This object will be picked up by the teacher's grading page
+        const submission = {
+            quizTitle: quizData.title,
+            studentName: "Developer", // Mocked user
+            studentAvatarUrl: "https://randomuser.me/api/portraits/lego/1.jpg",
+            studentAvatarAiHint: "profile lego",
+            answers: quizData.questions.map(q => ({
+                questionId: q.id,
+                questionText: q.questionText,
+                options: q.options,
+                correctAnswer: q.correctAnswer,
+                studentAnswer: answers[q.id] || "Not Answered",
+            })),
+            score: score,
+            totalQuestions: quizData.questions.length,
+        };
+
+        localStorage.setItem('newlySubmittedQuiz', JSON.stringify(submission));
+        localStorage.removeItem('activeQuiz'); // Clean up after submission
+
         setQuizState("results");
         setTimeLeft(0); // Stop timer
-        // In a real app, this would send answers to the backend.
-        // For this demo, we simulate this by informing the user where to see the result.
         toast({
             title: "Quiz Submitted Successfully!",
-            description: "Your answers have been 'sent'. You can now go to the Teacher Portal's Grading page to see this submission.",
+            description: "Your answers have been sent. You can now go to the Teacher Portal's Grading page to see this submission.",
             duration: 8000
         });
-    }, [toast]);
+    }, [toast, quizData, answers, calculateScore]);
 
     // Timer Effect
     useEffect(() => {
@@ -136,6 +153,15 @@ export default function QuizStartPage() {
             window.removeEventListener("blur", handleVisibilityChange);
         };
     }, [quizState, warningCount, toast, handleSubmit]);
+    
+    if (!quizData) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 font-sans">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="mt-4 text-muted-foreground">Loading quiz...</p>
+            </div>
+        );
+    }
 
     const renderIntro = () => (
         <Card className="w-full max-w-2xl shadow-2xl">
@@ -161,7 +187,7 @@ export default function QuizStartPage() {
                 <Button size="lg" className="w-full" onClick={() => setQuizState("active")}>
                     <PlayCircle className="mr-2 h-5 w-5"/> I understand, Start Quiz
                 </Button>
-                <Button variant="link" onClick={() => router.push('/assignments')}>Cancel and Go Back</Button>
+                <Button variant="link" onClick={() => router.push('/quizzes')}>Cancel and Go Back</Button>
             </CardFooter>
         </Card>
     );
