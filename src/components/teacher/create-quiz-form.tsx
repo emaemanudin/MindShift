@@ -67,6 +67,11 @@ export function CreateQuizForm() {
         status: "Take Quiz",
         timeLimitMinutes: questionCount * 1.5,
         path: '/quiz/start',
+        // Add unique IDs to each question to fix the React key error
+        questions: generatedQuiz.questions.map((q, index) => ({
+            ...q,
+            id: `q-${Date.now()}-${index}`,
+        })),
     };
 
     localStorage.setItem('newlyAssignedQuiz', JSON.stringify(quizToAssign));
