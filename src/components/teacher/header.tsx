@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { School, LogOut, LayoutDashboard, BookCopy, ClipboardCheck, FilePenLine, UserSquare, Menu } from "lucide-react";
 import { DarkModeToggle } from "../shared/dark-mode-toggle";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,10 @@ export function TeacherHeader() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-4">
+                    <SheetTitle className="sr-only">Teacher Navigation Menu</SheetTitle>
+                    <SheetDescription className="sr-only">
+                        Main navigation links for the Teacher Portal.
+                    </SheetDescription>
                     <nav className="grid gap-4 text-lg font-medium mt-8">
                        <NavLinks inSheet />
                     </nav>
