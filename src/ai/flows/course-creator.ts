@@ -28,7 +28,7 @@ const CourseCreatorOutputSchema = z.object({
   coverImageAiHint: z.string().describe('Two keywords for a stock photo that represents the course. e.g., "computer science" or "history book"'),
   youtubeVideo: z.object({
     title: z.string().describe('The official title of the suggested YouTube video.'),
-    url: z.string().url().describe('The full URL of the suggested YouTube video. It must be a valid, existing video.'),
+    url: z.string().describe('The full URL of the suggested YouTube video. It should be a valid, existing video.'),
   }),
   quiz: z.object({
     quizTitle: z.string().describe('A title for the self-assessment quiz.'),
@@ -52,7 +52,7 @@ The package must include:
 1.  A short, engaging 'title' for the course.
 2.  A one-paragraph 'description' summarizing the key learning objectives.
 3.  A 'coverImageAiHint' containing two keywords for a relevant background image.
-4.  A 'youtubeVideo' object containing the title and a valid, real URL to a relevant YouTube video that supplements the content.
+4.  A 'youtubeVideo' object containing a suggested title and a URL for a relevant YouTube video that supplements the content.
 5.  A 'quiz' object containing:
     - A 'quizTitle' for a self-assessment.
     - An array of 3-5 multiple-choice 'questions' based on the content. Each question must have 'questionText', an array of 4 'options' (1 correct, 3 plausible distractors), the 'correctAnswer', and a brief 'explanation'.
