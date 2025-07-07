@@ -4,7 +4,8 @@
 import { TeacherLayout } from "@/components/teacher/teacher-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, BarChart2 } from "lucide-react";
+import { BookOpen, Users, BarChart2, PlusCircle } from "lucide-react";
+import Link from "next/link";
 
 interface Course {
   id: string;
@@ -24,9 +25,17 @@ export default function TeacherCoursesPage() {
   return (
     <TeacherLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Courses</h1>
-          <p className="text-muted-foreground">Manage your course materials, view rosters, and track class-specific progress.</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">My Courses</h1>
+            <p className="text-muted-foreground">Manage your course materials, view rosters, and track class-specific progress.</p>
+          </div>
+          <Button asChild>
+            <Link href="/teacher/courses/create">
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Create New Course
+            </Link>
+          </Button>
         </div>
 
         <div className="space-y-6">

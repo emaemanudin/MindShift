@@ -32,30 +32,31 @@ import {
   List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface CategorizedCourse extends Course {
   category: string;
   icon: LucideIcon; // Ensure icon is part of the type for data definition
 }
 
-const allCoursesData: CategorizedCourse[] = [
+const initialCourses: CategorizedCourse[] = [
   // Software Engineering
-  { id: "se1", title: "Advanced JavaScript", description: "Deep dive into modern JavaScript features and patterns.", status: "Active", progress: 75, lessons: 20, duration: "15h", rating: 4.9, category: "Software Engineering", icon: Code2, coverImage: { url: "/my_course_image/advanced_javascript.png", aiHint: "javascript code" }, iconBgColor: "bg-blue-500/10" },
-  { id: "se2", title: "Data Structures & Algorithms", description: "Fundamental concepts for efficient problem-solving.", status: "Active", progress: 50, lessons: 25, duration: "20h", rating: 4.7, category: "Software Engineering", icon: Binary, coverImage: { url: "/my_course_image/data_structures_and_algorithms.png", aiHint: "algorithm flowchart" }, iconBgColor: "bg-green-500/10" },
-  { id: "se3", title: "Full-Stack Web Development", description: "Build complete web applications with React and Node.js.", status: "Upcoming", progress: 0, lessons: 30, duration: "25h", rating: 4.8, category: "Software Engineering", icon: Combine, coverImage: { url: "/my_course_image/full_stack_web_development.png", aiHint: "web application" }, iconBgColor: "bg-indigo-500/10" },
+  { id: "se1", title: "Advanced JavaScript", description: "Deep dive into modern JavaScript features and patterns.", status: "Active", progress: 75, lessons: 20, duration: "15h", rating: 4.9, category: "Software Engineering", icon: Code2, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "javascript code" }, iconBgColor: "bg-blue-500/10" },
+  { id: "se2", title: "Data Structures & Algorithms", description: "Fundamental concepts for efficient problem-solving.", status: "Active", progress: 50, lessons: 25, duration: "20h", rating: 4.7, category: "Software Engineering", icon: Binary, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "algorithm flowchart" }, iconBgColor: "bg-green-500/10" },
+  { id: "se3", title: "Full-Stack Web Development", description: "Build complete web applications with React and Node.js.", status: "Upcoming", progress: 0, lessons: 30, duration: "25h", rating: 4.8, category: "Software Engineering", icon: Combine, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "web application" }, iconBgColor: "bg-indigo-500/10" },
 
   // Cyber Security
-  { id: "cs1", title: "Intro to Cyber Security", description: "Basics of cyber threats and defenses.", status: "Active", progress: 80, lessons: 15, duration: "12h", rating: 4.6, category: "Cyber Security", icon: ShieldCheck, coverImage: { url: "/my_course_image/intro_to_cyber_security.png", aiHint: "security lock" }, iconBgColor: "bg-red-500/10" },
-  { id: "cs2", title: "Network Security", description: "Learn to secure networks and protect data.", status: "Active", progress: 60, lessons: 18, duration: "14h", rating: 4.5, category: "Cyber Security", icon: Network, coverImage: { url: "/my_course_image/network_security.png", aiHint: "network diagram" }, iconBgColor: "bg-yellow-500/10" },
-  { id: "cs3", title: "Ethical Hacking", description: "Discover vulnerabilities before malicious actors do.", status: "Upcoming", progress: 0, lessons: 22, duration: "18h", rating: 4.9, category: "Cyber Security", icon: TerminalSquare, coverImage: { url: "/my_course_image/ethical_hacking.png", aiHint: "hacker terminal" }, iconBgColor: "bg-gray-500/10" },
+  { id: "cs1", title: "Intro to Cyber Security", description: "Basics of cyber threats and defenses.", status: "Active", progress: 80, lessons: 15, duration: "12h", rating: 4.6, category: "Cyber Security", icon: ShieldCheck, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "security lock" }, iconBgColor: "bg-red-500/10" },
+  { id: "cs2", title: "Network Security", description: "Learn to secure networks and protect data.", status: "Active", progress: 60, lessons: 18, duration: "14h", rating: 4.5, category: "Cyber Security", icon: Network, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "network diagram" }, iconBgColor: "bg-yellow-500/10" },
+  { id: "cs3", title: "Ethical Hacking", description: "Discover vulnerabilities before malicious actors do.", status: "Upcoming", progress: 0, lessons: 22, duration: "18h", rating: 4.9, category: "Cyber Security", icon: TerminalSquare, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "hacker terminal" }, iconBgColor: "bg-gray-500/10" },
 
   // EUEE
-  { id: "euee1", title: "EUEE Mathematics", description: "Comprehensive prep for EUEE Mathematics.", status: "Active", progress: 90, lessons: 30, duration: "20h", rating: 4.7, category: "EUEE", icon: Calculator, coverImage: { url: "/my_course_image/euee_mathematics.png", aiHint: "math equations" }, iconBgColor: "bg-teal-500/10" },
-  { id: "euee2", title: "EUEE English", description: "Master English language skills for the EUEE.", status: "Active", progress: 70, lessons: 25, duration: "18h", rating: 4.5, category: "EUEE", icon: SpellCheck, coverImage: { url: "/my_course_image/euee_english.png", aiHint: "english textbook" }, iconBgColor: "bg-orange-500/10" },
+  { id: "euee1", title: "EUEE Mathematics", description: "Comprehensive prep for EUEE Mathematics.", status: "Active", progress: 90, lessons: 30, duration: "20h", rating: 4.7, category: "EUEE", icon: Calculator, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "math equations" }, iconBgColor: "bg-teal-500/10" },
+  { id: "euee2", title: "EUEE English", description: "Master English language skills for the EUEE.", status: "Active", progress: 70, lessons: 25, duration: "18h", rating: 4.5, category: "EUEE", icon: SpellCheck, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "english textbook" }, iconBgColor: "bg-orange-500/10" },
 
   // Cambridge Curriculum
-  { id: "cam1", title: "IGCSE Physics", description: "Covering the IGCSE Physics syllabus.", status: "Active", progress: 65, lessons: 28, duration: "22h", rating: 4.8, category: "Cambridge Curriculum", icon: Atom, coverImage: { url: "/my_course_image/igcse_physics.png", aiHint: "physics experiment" }, iconBgColor: "bg-purple-500/10" },
-  { id: "cam2", title: "A-Level Chemistry", description: "Advanced topics for A-Level students.", status: "Upcoming", progress: 10, lessons: 35, duration: "30h", rating: 4.9, category: "Cambridge Curriculum", icon: FlaskConical, coverImage: { url: "/my_course_image/a_level_chemistry.png", aiHint: "chemistry lab" }, iconBgColor: "bg-pink-500/10" },
+  { id: "cam1", title: "IGCSE Physics", description: "Covering the IGCSE Physics syllabus.", status: "Active", progress: 65, lessons: 28, duration: "22h", rating: 4.8, category: "Cambridge Curriculum", icon: Atom, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "physics experiment" }, iconBgColor: "bg-purple-500/10" },
+  { id: "cam2", title: "A-Level Chemistry", description: "Advanced topics for A-Level students.", status: "Upcoming", progress: 10, lessons: 35, duration: "30h", rating: 4.9, category: "Cambridge Curriculum", icon: FlaskConical, coverImage: { url: "https://placehold.co/600x400.png", aiHint: "chemistry lab" }, iconBgColor: "bg-pink-500/10" },
 ];
 
 const categories = [
@@ -67,10 +68,45 @@ const categories = [
 ];
 
 export default function MyCoursesPage() {
+  const [allCoursesData, setAllCoursesData] = useState<CategorizedCourse[]>(initialCourses);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid"); // Default to grid view
   const [filteredCourses, setFilteredCourses] = useState<CategorizedCourse[]>(allCoursesData);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // On page load, check for a newly assigned course from the teacher's page
+    const newCourseJSON = localStorage.getItem('newlyAssignedCourse');
+    if (newCourseJSON) {
+        const newCourseData = JSON.parse(newCourseJSON);
+        const formattedCourse: CategorizedCourse = {
+            id: newCourseData.id,
+            title: newCourseData.title,
+            description: newCourseData.description,
+            status: "Active",
+            progress: 0,
+            lessons: newCourseData.quiz.questions.length + 1, // 1 video + N quiz questions
+            duration: '1h', // Mock duration
+            rating: 4.5, // Mock rating
+            category: "Software Engineering", // Mock category
+            icon: Code2, // Default icon
+            coverImage: { url: `https://placehold.co/600x400.png`, aiHint: newCourseData.coverImageAiHint },
+            iconBgColor: 'bg-indigo-500/10',
+        };
+
+        // Add the new course to the list, preventing duplicates
+        setAllCoursesData(prev => {
+            const courseExists = prev.some(c => c.id === formattedCourse.id);
+            if (courseExists) return prev;
+            return [formattedCourse, ...prev];
+        });
+        
+        // Clear the item from storage so it's only added once
+        localStorage.removeItem('newlyAssignedCourse');
+        toast({ title: "New Course Added!", description: `The course "${formattedCourse.title}" is now available.` });
+    }
+  }, [toast]);
 
   useEffect(() => {
     let courses = allCoursesData;
@@ -84,7 +120,7 @@ export default function MyCoursesPage() {
       );
     }
     setFilteredCourses(courses);
-  }, [selectedCategory, searchTerm]);
+  }, [selectedCategory, searchTerm, allCoursesData]);
 
   return (
     <AppLayout>
