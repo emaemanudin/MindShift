@@ -1,6 +1,6 @@
 'use server';
 import { config } from 'dotenv';
-config();
+config({ path: '.env' });
 
 import '@/ai/flows/resource-finder.ts';
 import '@/ai/flows/study-group-assistant.ts';
