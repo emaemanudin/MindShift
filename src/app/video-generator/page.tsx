@@ -23,7 +23,7 @@ export default function VideoGeneratorPage() {
   // Form State
   const [lessonText, setLessonText] = useState('');
   const [subject, setSubject] = useState('Science');
-  const [studentInterest, setStudentInterest] = useState('Sports');
+  const [studentInterest, setStudentInterest] = useState('Gaming');
   const [languagePreference, setLanguagePreference] = useState('English');
 
   const [generationState, setGenerationState] = useState<GenerationState>('idle');
@@ -62,7 +62,7 @@ export default function VideoGeneratorPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script (Coach Leo Persona)</CardTitle>
+            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script (Pixel Persona)</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/50 p-4 rounded-md max-h-96 overflow-y-auto">
