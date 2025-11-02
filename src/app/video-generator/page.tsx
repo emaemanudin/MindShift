@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { generateVideoContent, type VideoGeneratorOutput } from "@/ai/flows/video-generator";
-import { Wand2, Loader2, Clapperboard, FileText, ListChecks, Gamepad2, Languages, BookOpen } from "lucide-react";
+import { Wand2, Loader2, Clapperboard, FileText, ListChecks, Gamepad2, Languages, BookOpen, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type GenerationState = 'idle' | 'loading' | 'generated';
@@ -23,7 +24,7 @@ export default function VideoGeneratorPage() {
   // Form State
   const [lessonText, setLessonText] = useState('');
   const [subject, setSubject] = useState('Science');
-  const [studentInterest, setStudentInterest] = useState('Gaming');
+  const [studentInterest, setStudentInterest] = useState('Music');
   const [languagePreference, setLanguagePreference] = useState('English');
 
   const [generationState, setGenerationState] = useState<GenerationState>('idle');
@@ -62,7 +63,7 @@ export default function VideoGeneratorPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script (Pixel Persona)</CardTitle>
+            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script (Melody Persona)</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/50 p-4 rounded-md max-h-96 overflow-y-auto">
@@ -137,7 +138,7 @@ export default function VideoGeneratorPage() {
                         <Input id="subject" value={subject} onChange={e => setSubject(e.target.value)} disabled={generationState === 'loading'}/>
                     </div>
                      <div>
-                        <Label htmlFor="studentInterest"><Gamepad2 className="inline h-4 w-4 mr-1"/>Student Interest</Label>
+                        <Label htmlFor="studentInterest"><Music className="inline h-4 w-4 mr-1"/>Student Interest</Label>
                         <Input id="studentInterest" value={studentInterest} onChange={e => setStudentInterest(e.target.value)} disabled={generationState === 'loading'}/>
                     </div>
                 </div>
