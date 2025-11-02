@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { generateVideoContent, type VideoGeneratorOutput } from "@/ai/flows/video-generator";
-import { Wand2, Loader2, Clapperboard, FileText, ListChecks, Gamepad2, Languages, BookOpen, Music } from "lucide-react";
+import { Wand2, Loader2, Clapperboard, FileText, ListChecks, Gamepad2, Languages, BookOpen, Music, BetweenHorizontalStart, BookHeart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type GenerationState = 'idle' | 'loading' | 'generated';
@@ -24,8 +24,8 @@ export default function VideoGeneratorPage() {
   // Form State
   const [lessonText, setLessonText] = useState('');
   const [subject, setSubject] = useState('Science');
-  const [studentInterest, setStudentInterest] = useState('Music');
-  const [languagePreference, setLanguagePreference] = useState('English');
+  const [studentInterest, setStudentInterest] = useState<'Sports' | 'Gaming' | 'Music' | 'Books/Stories'>('Music');
+  const [languagePreference, setLanguagePreference] = useState<'English' | 'Amharic' | 'Afaan Oromo' | 'Somali' | 'Tigrinya' | 'Arabic'>('English');
 
   const [generationState, setGenerationState] = useState<GenerationState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export default function VideoGeneratorPage() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script (Melody Persona)</CardTitle>
+            <CardTitle className="flex items-center text-2xl"><Clapperboard className="mr-3 h-6 w-6 text-primary"/>Video Script</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="whitespace-pre-wrap font-sans text-sm bg-muted/50 p-4 rounded-md max-h-96 overflow-y-auto">
@@ -132,26 +132,35 @@ export default function VideoGeneratorPage() {
                         disabled={generationState === 'loading'}
                     />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                     <div>
                         <Label htmlFor="subject"><BookOpen className="inline h-4 w-4 mr-1"/>Subject</Label>
                         <Input id="subject" value={subject} onChange={e => setSubject(e.target.value)} disabled={generationState === 'loading'}/>
                     </div>
                      <div>
-                        <Label htmlFor="studentInterest"><Music className="inline h-4 w-4 mr-1"/>Student Interest</Label>
-                        <Input id="studentInterest" value={studentInterest} onChange={e => setStudentInterest(e.target.value)} disabled={generationState === 'loading'}/>
+                        <Label htmlFor="studentInterest"><BookHeart className="inline h-4 w-4 mr-1"/>Student Interest</Label>
+                        <Select value={studentInterest} onValueChange={(value) => setStudentInterest(value as any)} disabled={generationState === 'loading'}>
+                            <SelectTrigger id="studentInterest"><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Sports">Sports</SelectItem>
+                                <SelectItem value="Gaming">Gaming</SelectItem>
+                                <SelectItem value="Music">Music</SelectItem>
+                                <SelectItem value="Books/Stories">Books/Stories</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
                  <div>
                     <Label htmlFor="languagePreference"><Languages className="inline h-4 w-4 mr-1"/>Language</Label>
-                    <Select value={languagePreference} onValueChange={setLanguagePreference} disabled={generationState === 'loading'}>
+                    <Select value={languagePreference} onValueChange={(value) => setLanguagePreference(value as any)} disabled={generationState === 'loading'}>
                         <SelectTrigger id="languagePreference"><SelectValue/></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="English">English</SelectItem>
                             <SelectItem value="Amharic">Amharic</SelectItem>
+                            <SelectItem value="Afaan Oromo">Afaan Oromo</SelectItem>
+                            <SelectItem value="Somali">Somali</SelectItem>
+                            <SelectItem value="Tigrinya">Tigrinya</SelectItem>
                             <SelectItem value="Arabic">Arabic</SelectItem>
-                            <SelectItem value="Chinese">Chinese</SelectItem>
-                            <SelectItem value="Spanish">Spanish</SelectItem>
                         </SelectContent>
                     </Select>
                  </div>
