@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A one-on-one AI tutor that provides text and audio responses.
@@ -39,6 +40,7 @@ const textGenerationPrompt = ai.definePrompt({
   name: 'studyBuddyTextPrompt',
   input: { schema: StudyBuddyInputSchema },
   output: { schema: StudyBuddyTextOutputSchema },
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are MindShift, an expert AI tutor. Your goal is to provide clear, personalized academic support by explaining topics to students.
 
 Your Task:
