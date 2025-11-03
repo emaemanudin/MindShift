@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI assistant for study groups that adapts its persona.
@@ -39,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'studyGroupAssistantPrompt',
   input: {schema: StudyGroupAssistantInputSchema},
   output: {schema: StudyGroupAssistantOutputSchema},
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: googleAI.model('gemini-1.5-flash'),
   prompt: `You are MindShift AI, an expert AI assistant in a study group chat. Your personality and expertise must adapt to the context of the current group.
 
 Current Study Group:
