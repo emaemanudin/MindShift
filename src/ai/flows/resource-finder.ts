@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const AiResourceFinderInputSchema = z.object({
   searchQuery: z.string().describe('The search query for learning resources.'),
@@ -31,6 +33,7 @@ const prompt = ai.definePrompt({
   name: 'aiResourceFinderPrompt',
   input: {schema: AiResourceFinderInputSchema},
   output: {schema: AiResourceFinderOutputSchema},
+  model: googleAI.model('gemini-1.5-flash'),
   prompt: `You are an AI-powered resource finder for students. Based on the search query, provide a list of relevant online learning resources and documentation.
 
 Search Query: {{{searchQuery}}}
