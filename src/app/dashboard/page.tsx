@@ -1,84 +1,79 @@
 
-"use client"; // Required because we use hooks (even if auth is removed, others might be used)
+"use client";
 
+import { useState, useEffect } from 'react';
 import { AppLayout } from "@/components/layout/app-layout";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { PomodoroTimer } from "@/components/dashboard/pomodoro-timer";
 import { ProgressOverview } from "@/components/dashboard/progress-overview";
-import { CourseCard, type Course } from "@/components/dashboard/course-card";
+import { CourseCard } from "@/components/dashboard/course-card";
 import { TaskItem, type Task } from "@/components/dashboard/task-item";
-import { StudyGroupItem, type StudyGroup } from "@/components/dashboard/study-group-item";
-import { ActivityItem, type Activity } from "@/components/dashboard/activity-item";
+import { StudyGroupItem } from "@/components/dashboard/study-group-item";
+import { ActivityItem } from "@/components/dashboard/activity-item";
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useToast } from "@/hooks/use-toast";
+import { getDashboardData } from "@/lib/db/adapter";
+import type { Course, StudyGroup, Activity } from '@/lib/db/data-models';
 
 import {
-  BookOpenCheck,
-  CheckCircle2,
-  ListTodo,
-  Clock,
-  Laptop,
-  Database,
-  BrainCircuit,
-  AlertCircle,
-  HelpCircle,
-  BookOpen,
-  Users,
-  MessageSquare,
-  Trophy,
-  Award,
-  Check,
-  ArrowRight,
-  Filter,
-  Plus,
-  Star,
-  Loader2,
+  BookOpenCheck, CheckCircle2, ListTodo, Clock, Loader2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-// Mock Data
-const stats = [
-  { title: "Active Courses", value: "5", icon: BookOpenCheck, iconBg: "bg-blue-500/10", iconColor: "text-blue-500" },
-  { title: "Completed", value: "12", icon: CheckCircle2, iconBg: "bg-green-500/10", iconColor: "text-green-500" },
-  { title: "Pending Tasks", value: "3", icon: ListTodo, iconBg: "bg-yellow-500/10", iconColor: "text-yellow-500" },
-  { title: "Study Hours", value: "42", icon: Clock, iconBg: "bg-primary/10", iconColor: "text-primary" },
-];
-
-const courses: Course[] = [
-  { id: "1", title: "Web Development", description: "Learn modern web development with HTML, CSS, and JavaScript.", status: "Active", progress: 65, lessons: 12, duration: "8h 30m", rating: 4.8, icon: Laptop, iconBgColor: "bg-blue-500/10", coverImage: { url: "/my_course_image/web_development.png", aiHint: "coding laptop" } },
-  { id: "2", title: "Database Systems", description: "Master SQL and database design principles.", status: "Active", progress: 80, lessons: 8, duration: "6h 15m", rating: 4.6, icon: Database, iconBgColor: "bg-purple-500/10", coverImage: { url: "/my_course_image/database_systems.png", aiHint: "database server" } },
-  { id: "3", title: "Machine Learning", description: "Introduction to AI and machine learning algorithms.", status: "Active", progress: 45, lessons: 5, duration: "4h 20m", rating: 4.9, icon: BrainCircuit, iconBgColor: "bg-green-500/10", coverImage: { url: "/my_course_image/machine_learning.png", aiHint: "robot ai" } },
-];
-
-const tasks: Task[] = [
-  { id: "1", title: "Web Dev Assignment", dueDate: "Due tomorrow", icon: AlertCircle, iconBgClass: "bg-red-500/10", iconColorClass: "text-red-500", completed: false },
-  { id: "2", title: "Database Quiz", dueDate: "Due in 3 days", icon: HelpCircle, iconBgClass: "bg-yellow-500/10", iconColorClass: "text-yellow-500", completed: true },
-  { id: "3", title: "Read ML Chapter 5", dueDate: "Due in 5 days", icon: BookOpen, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", completed: false },
-];
-
-const studyGroups: StudyGroup[] = [
-  { id: "1", name: "Web Dev Study Group", description: "Next meeting: Tomorrow, 3 PM", icon: Users, iconBgClass: "bg-purple-500/10", iconColorClass: "text-purple-500", members: [{id:"m1", name:"Jane", avatarUrl:"https://randomuser.me/api/portraits/women/44.jpg", avatarAiHint: "profile woman"}, {id:"m2", name:"John", avatarUrl:"https://randomuser.me/api/portraits/men/46.jpg", avatarAiHint: "profile man"}, {id:"m3", name:"Alice", avatarUrl:"https://randomuser.me/api/portraits/women/47.jpg", avatarAiHint: "profile woman"}] },
-  { id: "2", name: "Database Team", description: "Working on final project", icon: Users, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", members: [{id:"m4", name:"Bob", avatarUrl:"https://randomuser.me/api/portraits/men/75.jpg", avatarAiHint: "profile man"}, {id:"m5", name:"Charlie", avatarUrl:"https://randomuser.me/api/portraits/men/77.jpg", avatarAiHint: "profile man"}] },
-  { id: "3", name: "AI Research Club", description: "Monthly meeting: Friday, 4 PM", icon: Users, iconBgClass: "bg-green-500/10", iconColorClass: "text-green-500", members: [{id:"m6", name:"Dave", avatarUrl:"https://randomuser.me/api/portraits/men/78.jpg", avatarAiHint: "profile man"}, {id:"m7", name:"Eve", avatarUrl:"https://randomuser.me/api/portraits/women/79.jpg", avatarAiHint: "profile woman"}, {id:"m8", name:"Frank", avatarUrl:"https://randomuser.me/api/portraits/men/80.jpg", avatarAiHint: "profile man"}] },
-];
-
-const recentActivities: Activity[] = [
-  { id: "1", description: "Completed Web Development Chapter 4", timestamp: "2 hours ago", icon: BookOpen, iconBgClass: "bg-primary/10", iconColorClass: "text-primary", actionIcon: Check, actionIconColorClass: "text-green-500" },
-  { id: "2", description: "New comment on your post in Database Group", timestamp: "5 hours ago", icon: MessageSquare, iconBgClass: "bg-blue-500/10", iconColorClass: "text-blue-500", actionIcon: ArrowRight, actionIconColorClass: "text-blue-500" },
-  { id: "3", description: "Achievement unlocked: 50 Study Hours", timestamp: "Yesterday", icon: Trophy, iconBgClass: "bg-green-500/10", iconColorClass: "text-green-500", actionIcon: Award, actionIconColorClass: "text-green-500" },
-];
-
+// Simplified data structure for the dashboard state
+interface DashboardData {
+  stats: { activeCourses: number; completedTasks: number; pendingTasks: number; studyHours: number; };
+  courses: Omit<Course, 'icon'>[];
+  tasks: Task[];
+  studyGroups: Omit<StudyGroup, 'icon'>[];
+  recentActivities: Omit<Activity, 'icon' | 'actionIcon'>[];
+}
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (isLoading) {
-     return (
+  useEffect(() => {
+    if (user?.id) {
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          const dashboardData = await getDashboardData(user.id);
+
+          // We need to map over the data to separate the Icon components
+          // This is because functions (like React components) can't be passed from Server to Client Components directly
+          // While this page is a client component, this pattern prepares us for that architecture.
+          const mappedData: DashboardData = {
+            stats: dashboardData.stats,
+            courses: dashboardData.courses.map(({ icon, ...rest }) => rest),
+            tasks: dashboardData.tasks.map(({ icon, ...rest }) => ({...rest, icon: icon})),
+            studyGroups: dashboardData.studyGroups.map(({ icon, ...rest }) => rest),
+            recentActivities: dashboardData.recentActivities.map(({ icon, actionIcon, ...rest }) => rest),
+          };
+          setData(mappedData);
+        } catch (error) {
+          console.error("Failed to fetch dashboard data:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not load dashboard data.",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [user?.id, toast]);
+  
+  // Combine auth loading and data loading states
+  const pageIsLoading = isAuthLoading || isLoading;
+
+  if (pageIsLoading) {
+    return (
       <AppLayout>
         <div className="flex items-center justify-center h-full">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -92,128 +87,96 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        {/* Header Section from prototype (Welcome message) */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Students' Work Specs</h1>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">
             Welcome back, {userName}! Here's a snapshot of your learning journey.
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Now using fetched data */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => {
-            const IconComponent = stat.icon;
-            return (
-              <Card key={stat.title} className="shadow-md">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                    <Badge variant="outline">Demo</Badge>
-                </CardHeader>
-                <CardContent className="pt-2">
-                    <div className="text-3xl font-bold">{stat.value}</div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          <StatsCard title="Active Courses" value={data?.stats.activeCourses || 0} iconElement={<BookOpenCheck className="h-5 w-5 text-blue-500" />} iconBgClass="bg-blue-500/10" />
+          <StatsCard title="Completed Tasks" value={data?.stats.completedTasks || 0} iconElement={<CheckCircle2 className="h-5 w-5 text-green-500" />} iconBgClass="bg-green-500/10" />
+          <StatsCard title="Pending Tasks" value={data?.stats.pendingTasks || 0} iconElement={<ListTodo className="h-5 w-5 text-yellow-500" />} iconBgClass="bg-yellow-500/10" />
+          <StatsCard title="Study Hours" value={data?.stats.studyHours || 0} iconElement={<Clock className="h-5 w-5 text-primary" />} iconBgClass="bg-primary/10" />
         </div>
 
-        {/* Study Timer and Progress Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <PomodoroTimer />
           <ProgressOverview />
         </div>
 
-        {/* Courses Section */}
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-semibold text-foreground">Your Courses</h3>
-            <Badge variant="outline">Demo Content</Badge>
-          </div>
+          <h3 className="text-2xl font-semibold text-foreground mb-6">Your Courses</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((courseItem) => {
-              const { icon: IconComponent, iconBgColor, ...serializableCourseData } = courseItem;
-              const iconElement = IconComponent ? <IconComponent className="h-16 w-16 text-primary" /> : undefined;
-              return (
-                <CourseCard
-                  key={serializableCourseData.id}
-                  courseData={serializableCourseData}
-                  iconElement={iconElement}
-                  iconBgColor={iconBgColor}
-                />
-              );
-            })}
+            {data?.courses.map((courseItem) => (
+              <CourseCard key={courseItem.id} courseData={courseItem} />
+            ))}
           </div>
         </div>
 
-        {/* Tasks and Study Groups Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-semibold">Upcoming Tasks</CardTitle>
-              <Badge variant="outline">Demo Content</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              {tasks.map((task) => {
-                const { icon: IconComponent, completed, iconBgClass, iconColorClass, ...restTaskProps } = task;
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Upcoming Tasks</h3>
+            {data?.tasks.map((task) => {
+                const { icon: IconComponent, completed, ...restTaskProps } = task;
                 return (
                   <TaskItem
                     key={task.id}
                     {...restTaskProps}
-                    iconElement={<IconComponent className={cn("h-5 w-5", iconColorClass)} />}
-                    iconBgClass={iconBgClass}
+                    iconElement={<IconComponent className={cn("h-5 w-5", task.id === '1' ? 'text-red-500' : task.id === '2' ? 'text-yellow-500' : 'text-blue-500')} />}
+                    iconBgClass={cn(task.id === '1' ? 'bg-red-500/10' : task.id === '2' ? 'bg-yellow-500/10' : 'bg-blue-500/10')}
                     completedProp={completed}
                   />
                 );
-              })}
-            </CardContent>
-          </Card>
+            })}
+          </div>
 
-          <Card className="shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-semibold">Study Groups</CardTitle>
-              <Badge variant="outline">Demo Content</Badge>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              {studyGroups.map((group) => {
-                const { icon: IconComponent, iconBgClass, iconColorClass, ...restGroupProps } = group;
-                return (
-                  <StudyGroupItem
-                    key={group.id}
-                    groupData={restGroupProps}
-                    iconElement={<IconComponent className={cn("h-5 w-5", iconColorClass)} />}
-                    iconBgClass={iconBgClass}
-                  />
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity Section */}
-        <Card className="shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
-            <Badge variant="outline">Demo Content</Badge>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4">
-            {recentActivities.map((activity) => {
-              const { icon: MainIconComponent, actionIcon: ActionIconComponent, iconBgClass, iconColorClass, actionIconColorClass, ...restActivityProps } = activity;
-              const mainIconElement = <MainIconComponent className={cn("h-5 w-5", iconColorClass)} />;
-              const actionIconElement = ActionIconComponent ? <ActionIconComponent className="h-5 w-5" /> : undefined;
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Study Groups</h3>
+            {data?.studyGroups.map((group) => {
+              // The original mock data didn't have icon info, so we add it here based on ID
+              const getGroupIcon = () => {
+                  if (group.id === '1') return { icon: <Users className="h-5 w-5 text-purple-500" />, bg: "bg-purple-500/10"};
+                  if (group.id === '2') return { icon: <Users className="h-5 w-5 text-blue-500" />, bg: "bg-blue-500/10"};
+                  return { icon: <Users className="h-5 w-5 text-green-500" />, bg: "bg-green-500/10"};
+              }
+              const { icon, bg } = getGroupIcon();
               return (
-                <ActivityItem
-                  key={activity.id}
-                  activityData={restActivityProps}
-                  mainIconElement={mainIconElement}
-                  actionIconElement={actionIconElement}
-                  iconBgClass={iconBgClass}
-                  actionIconContainerClass={cn("ml-2", actionIconColorClass || "text-muted-foreground")}
+                <StudyGroupItem
+                  key={group.id}
+                  groupData={group}
+                  iconElement={icon}
+                  iconBgClass={bg}
                 />
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Recent Activity</h3>
+          <div className="space-y-4">
+             {data?.recentActivities.map((activity) => {
+                const getActivityIcons = () => {
+                    if (activity.id === '1') return { main: <BookOpenCheck className="h-5 w-5 text-primary" />, action: <CheckCircle2 className="h-5 w-5 text-green-500" />, bg: "bg-primary/10" };
+                    if (activity.id === '2') return { main: <MessageSquare className="h-5 w-5 text-blue-500" />, action: <ArrowRight className="h-5 w-5 text-blue-500" />, bg: "bg-blue-500/10" };
+                    return { main: <Trophy className="h-5 w-5 text-green-500" />, action: <Award className="h-5 w-5 text-green-500" />, bg: "bg-green-500/10" };
+                }
+                const { main, action, bg } = getActivityIcons();
+                return (
+                    <ActivityItem
+                    key={activity.id}
+                    activityData={activity}
+                    mainIconElement={main}
+                    actionIconElement={action}
+                    iconBgClass={bg}
+                    />
+                );
+            })}
+          </div>
+        </div>
 
       </div>
       <FloatingActionButton 

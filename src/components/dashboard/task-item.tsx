@@ -3,20 +3,18 @@
 
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { LucideIcon } from "lucide-react"; // Still useful for data definition
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Check, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// This interface describes the shape of the task data in page.tsx
+// This interface describes the shape of the task data
 export interface Task {
   id: string;
   title: string;
   dueDate: string;
   icon: LucideIcon; // The component type for the icon
-  iconBgClass: string;
-  iconColorClass: string;
   completed?: boolean;
 }
 

@@ -1,34 +1,16 @@
 
 import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react"; // For StudyGroup data interface
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
-interface Member {
-  id: string;
-  name: string;
-  avatarUrl: string;
-  avatarAiHint?: string;
-}
-
-// Original StudyGroup interface for data structure
-export interface StudyGroup {
-  id: string;
-  name: string;
-  description: string;
-  icon: LucideIcon; // Icon component type in data
-  iconBgClass: string;
-  iconColorClass: string;
-  members: Member[];
-}
+import type { StudyGroup } from "@/lib/db/data-models";
 
 // Props for the StudyGroupItem component
 interface StudyGroupItemProps {
-  groupData: Omit<StudyGroup, 'icon' | 'iconBgClass' | 'iconColorClass'>; // Serializable data
-  iconElement: ReactNode; // Icon as a ReactNode
+  groupData: Omit<StudyGroup, 'icon' | 'teacher' | 'messages'>; // Serializable data from adapter
+  iconElement: ReactNode; // Icon as a ReactNode, passed from parent
   iconBgClass: string;
 }
 
@@ -38,7 +20,7 @@ export function StudyGroupItem({ groupData, iconElement, iconBgClass }: StudyGro
   return (
     <div className="flex items-center p-3 border rounded-lg hover:bg-accent/50 transition-colors">
       <div className={cn("p-2 rounded-full mr-4", iconBgClass)}>
-        {iconElement} {/* Render the passed icon element */}
+        {iconElement}
       </div>
       <div className="flex-grow">
         <h4 className="font-medium text-foreground">{name}</h4>
