@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export default function SettingsPage() {
   const { user, role } = useAuth();
@@ -50,10 +51,16 @@ export default function SettingsPage() {
   const isProfileEditable = role === 'admin';
 
   const handleProfileSave = () => {
-    // This is a mock save.
     toast({
-        title: "Profile Saved",
-        description: "Your profile information has been updated.",
+        title: "Placeholder Action",
+        description: "Profile saving is not implemented in this demo.",
+    });
+  }
+
+  const handlePasswordUpdate = () => {
+    toast({
+        title: "Placeholder Action",
+        description: "Password changes are not functional in this demo.",
     });
   }
 
@@ -91,7 +98,7 @@ export default function SettingsPage() {
                     <CardTitle>Profile</CardTitle>
                     <CardDescription>
                       This is how your profile appears to others.
-                      {!isProfileEditable && " Only admins can change this information."}
+                      <Badge variant="outline" className="ml-2">Demo</Badge>
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -101,7 +108,7 @@ export default function SettingsPage() {
                         fallbackInitials={userProfile.name.charAt(0) || "D"}
                         size="lg"
                       />
-                      <Button variant="outline" disabled={!isProfileEditable}>Upload New Picture</Button>
+                      <Button variant="outline" disabled>Upload New Picture</Button>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -109,14 +116,14 @@ export default function SettingsPage() {
                           id="name"
                           value={userProfile.name}
                           onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
-                          disabled={!isProfileEditable}
+                          disabled
                         />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
                         <Input id="email" type="email" value={userProfile.email} disabled />
                     </div>
-                    <Button onClick={handleProfileSave} disabled={!isProfileEditable}>Save Profile</Button>
+                    <Button onClick={handleProfileSave} disabled>Save Profile</Button>
                   </CardContent>
                 </Card>
                 <Card>
@@ -142,8 +149,8 @@ export default function SettingsPage() {
                       <p className="text-xs text-muted-foreground">Note: Live theme toggling is in the header. This sets the default.</p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="language">Language</Label>
-                       <Select defaultValue="en-us">
+                      <Label htmlFor="language">Language <Badge variant="outline" className="ml-1">Demo</Badge></Label>
+                       <Select defaultValue="en-us" disabled>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select language" />
                         </SelectTrigger>
@@ -172,24 +179,24 @@ export default function SettingsPage() {
               <CardContent className="space-y-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Change Password</CardTitle>
+                        <CardTitle className="text-lg">Change Password <Badge variant="outline" className="ml-2">Demo</Badge></CardTitle>
                     </CardHeader>
                      <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="current-password">Current Password</Label>
-                            <Input id="current-password" type="password" />
+                            <Input id="current-password" type="password" disabled />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="new-password">New Password</Label>
-                            <Input id="new-password" type="password" />
+                            <Input id="new-password" type="password" disabled />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input id="confirm-password" type="password" />
+                            <Input id="confirm-password" type="password" disabled />
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button>Update Password</Button>
+                        <Button onClick={handlePasswordUpdate} disabled>Update Password</Button>
                     </CardFooter>
                  </Card>
                  <Card>
@@ -233,24 +240,24 @@ export default function SettingsPage() {
           <TabsContent value="ai">
              <Card>
               <CardHeader>
-                <CardTitle>AI Configuration</CardTitle>
+                <CardTitle>AI Configuration <Badge variant="outline" className="ml-2">Demo</Badge></CardTitle>
                 <CardDescription>
-                  Fine-tune the behavior of the AI-powered features.
+                  Fine-tune the behavior of the AI-powered features. These settings are for display only.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <Label>Study Buddy Defaults</Label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg">
-                        <Select defaultValue="general">
+                        <Select defaultValue="general" disabled>
                           <SelectTrigger><SelectValue placeholder="Default Subject" /></SelectTrigger>
                           <SelectContent><SelectItem value="general">General</SelectItem></SelectContent>
                         </Select>
-                        <Select defaultValue="high-school">
+                        <Select defaultValue="high-school" disabled>
                           <SelectTrigger><SelectValue placeholder="Default Complexity" /></SelectTrigger>
                            <SelectContent><SelectItem value="high-school">High School</SelectItem></SelectContent>
                         </Select>
-                         <Select defaultValue="English">
+                         <Select defaultValue="English" disabled>
                           <SelectTrigger><SelectValue placeholder="Default Language" /></SelectTrigger>
                            <SelectContent><SelectItem value="English">English</SelectItem></SelectContent>
                         </Select>
@@ -261,7 +268,7 @@ export default function SettingsPage() {
                       <Label className="text-base">Personalize Learning Paths</Label>
                       <p className="text-sm text-muted-foreground">Allow AI to analyze performance to suggest study plans.</p>
                     </div>
-                    <Switch defaultChecked/>
+                    <Switch defaultChecked disabled/>
                   </div>
               </CardContent>
             </Card>

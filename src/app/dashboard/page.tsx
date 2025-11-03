@@ -12,6 +12,7 @@ import { ActivityItem, type Activity } from "@/components/dashboard/activity-ite
 import { FloatingActionButton } from "@/components/shared/floating-action-button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth/auth-provider";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   BookOpenCheck,
@@ -36,7 +37,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 // Mock Data
 const stats = [
@@ -73,6 +75,7 @@ const recentActivities: Activity[] = [
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
 
   if (isLoading) {
      return (
@@ -102,13 +105,15 @@ export default function DashboardPage() {
           {stats.map((stat) => {
             const IconComponent = stat.icon;
             return (
-              <StatsCard
-                key={stat.title}
-                title={stat.title}
-                value={stat.value}
-                iconElement={<IconComponent className={cn("h-6 w-6", stat.iconColor)} />}
-                iconBgClass={stat.iconBg}
-              />
+              <Card key={stat.title} className="shadow-md">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                    <Badge variant="outline">Demo</Badge>
+                </CardHeader>
+                <CardContent className="pt-2">
+                    <div className="text-3xl font-bold">{stat.value}</div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -123,6 +128,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-2xl font-semibold text-foreground">Your Courses</h3>
+            <Badge variant="outline">Demo Content</Badge>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courses.map((courseItem) => {
@@ -145,7 +151,7 @@ export default function DashboardPage() {
           <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Upcoming Tasks</CardTitle>
-              
+              <Badge variant="outline">Demo Content</Badge>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {tasks.map((task) => {
@@ -166,7 +172,7 @@ export default function DashboardPage() {
           <Card className="shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Study Groups</CardTitle>
-              
+              <Badge variant="outline">Demo Content</Badge>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               {studyGroups.map((group) => {
@@ -188,7 +194,7 @@ export default function DashboardPage() {
         <Card className="shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
-            
+            <Badge variant="outline">Demo Content</Badge>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             {recentActivities.map((activity) => {
@@ -210,7 +216,10 @@ export default function DashboardPage() {
         </Card>
 
       </div>
-      <FloatingActionButton aria-label="Add new item"/>
+      <FloatingActionButton 
+        aria-label="Add new item"
+        onClick={() => toast({ title: "Placeholder", description: "This button is for demonstration purposes." })}
+      />
     </AppLayout>
   );
 }

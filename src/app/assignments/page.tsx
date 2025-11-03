@@ -20,6 +20,7 @@ import {
   PlayCircle,
   CheckCircle,
   PlusCircle,
+  Info,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -153,7 +154,7 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
     if (status === "Pending") {
       onSetStatus(id, "In Progress");
     }
-    toast({ title: "Time Logged", description: `Logged 30 minutes for "${title}".`, variant: "default"});
+    toast({ title: "Time Logged", description: `Logged 30 minutes for "${title}". Data is not saved.`, variant: "default"});
   };
 
   const handleCompleteClick = () => {
@@ -163,13 +164,13 @@ function AssignmentItem({ assignment, onLogTime, onSetStatus }: AssignmentItemPr
     }
     onSetStatus(id, "Completed");
     onLogTime(id, Math.max(0, (assignment.estimatedTimeHours || 0) - (assignment.timeSpentHours || 0))); 
-    toast({ title: "Task Completed", description: `"${title}" marked as completed.`, variant: "default"});
+    toast({ title: "Task Completed", description: `"${title}" marked as completed. Data is not saved.`, variant: "default"});
   };
   
   const handleStartTaskClick = () => {
     if (status === "Pending") {
       onSetStatus(id, "In Progress");
-      toast({ title: "Task Started", description: `"${title}" is now In Progress.`, variant: "default"});
+      toast({ title: "Task Started", description: `"${title}" is now In Progress. Data is not saved.`, variant: "default"});
     } else if (status === "In Progress") {
       toast({ title: "Task Update", description: `"${title}" is already In Progress.`, variant: "default"});
     } else {
@@ -246,7 +247,7 @@ function ProgressDisplayCard({ timeTracking }: { timeTracking: TimeTracking }) {
           <Clock className="mr-2 h-5 w-5 text-primary" />
           Time Spent Overview
         </CardTitle>
-        <CardDescription>Your activity across the platform and tasks.</CardDescription>
+        <CardDescription>Your activity across the platform and tasks. <Badge variant="outline">Demo</Badge></CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center p-3 bg-accent/50 rounded-md">
@@ -271,7 +272,7 @@ function GoalProgressCard({ goals }: { goals: ProgressGoals }) {
           <Target className="mr-2 h-5 w-5 text-primary" />
           Goal Progress
         </CardTitle>
-        <CardDescription>Track your progress towards your learning goals.</CardDescription>
+        <CardDescription>Track your progress towards your learning goals. <Badge variant="outline">Demo</Badge></CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -363,10 +364,16 @@ export default function AssignmentsPage() {
         </section>
 
         <section aria-labelledby="assignments-heading">
-          <h2 id="assignments-heading" className="text-2xl font-semibold text-foreground mb-4 flex items-center">
-            <CalendarDays className="mr-2 h-6 w-6 text-primary" />
-            Your Assignments
-          </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 id="assignments-heading" className="text-2xl font-semibold text-foreground flex items-center">
+                <CalendarDays className="mr-2 h-6 w-6 text-primary" />
+                Your Assignments
+              </h2>
+               <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Info className="h-4 w-4" />
+                    <span>Assignment data is for demo purposes and is not saved.</span>
+                </div>
+            </div>
           {assignments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {assignments.map((assignment) => (
