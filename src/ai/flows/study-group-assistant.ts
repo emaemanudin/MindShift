@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const StudyGroupAssistantInputSchema = z.object({
   userMessage: z.string().describe('The message from the user.'),
@@ -38,7 +39,7 @@ const prompt = ai.definePrompt({
   name: 'studyGroupAssistantPrompt',
   input: {schema: StudyGroupAssistantInputSchema},
   output: {schema: StudyGroupAssistantOutputSchema},
-  model: 'googleai/gemini-2.0-flash',
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are MindShift AI, an expert AI assistant in a study group chat. Your personality and expertise must adapt to the context of the current group.
 
 Current Study Group:

@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import wav from 'wav';
-import {googleAI} from '@genkit-ai/googleai';
+import {googleAI} from '@genkit-ai/google-genai';
 
 const StudyBuddyInputSchema = z.object({
   question: z.string().describe("The user's question for the study buddy."),
